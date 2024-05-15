@@ -20,7 +20,7 @@ class LIME(Explainer):
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         local_exps = self.explain_local(X_data)
         # Calculate the mean across rows to get the average effect of each feature globally
-        global_exp = np.mean(local_exps, axis=0)
+        global_exp = np.mean(local_exps * X_data.values, axis=0)
         # Transpose and convert to DataFrame to match the requested output format
         return pd.DataFrame(global_exp, index=X_data.columns, columns=['LIME Value'])
 
