@@ -21,11 +21,9 @@ class SHAP(Explainer):
         :param x_data: DataFrame containing the feature data.
         :return: DataFrame of average SHAP values for each feature.
         """
-        explainer_class = self.chooseExplainer(type(self.model).__name__)
 
-        # build an Exact explainer and explain the model predictions on the given dataset
-        explainer = explainer_class(self.model, self.X_train)
-        shap_values = explainer.shap_values(x_data)
+        shap_values = self.explain_local(x_data)
+        
 
         #if isinstance(self.model, RandomForestClassifier):
         #    global_exp = pd.DataFrame(explainer.shap_values(x_data).mean(axis=1))
@@ -48,9 +46,9 @@ class SHAP(Explainer):
         :param model_type: A string describing the type of the model
         :return: A SHAP Explainer class or None if no appropriate explainer is found
         """
-        if "Tree" in model_type or "Forest" in model_type:
+        if "tree" in model_type or "forest" in model_type.lower():
             return sh.TreeExplainer
-        elif "linear" in model_type:
+        elif "linear" in model_type.lower():
             return sh.LinearExplainer
         else:
             return sh.KernelExplainer
@@ -64,5 +62,5 @@ class SHAP(Explainer):
         """
         explainer_class = self.chooseExplainer(type(self.model).__name__)
         explainer = explainer_class(self.model, self.X_train)
-        shap_values = explainer.shap_values(x_data)
+        shap_values = explainer.shap_values(x_data, check_additivity=False)
         return pd.DataFrame(shap_values, columns=x_data.columns)
