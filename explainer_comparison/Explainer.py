@@ -10,12 +10,12 @@ import pandas as pd
 class Explainer(ABC):
     def __init__(self,
                  model,
-                 train_x: pd.DataFrame,
-                 train_y: pd.DataFrame,
-                 y_pred: pd.DataFrame):
+                 X_train: pd.DataFrame,
+                 y_train: pd.DataFrame,
+                 y_pred: pd.DataFrame = None):
         self.model = model
-        self.train_x = train_x
-        self.train_y: pd.DataFrame = train_y
+        self.X_train = X_train
+        self.y_train: pd.DataFrame = y_train
         self.y_pred: pd.DataFrame = y_pred
 
     @abstractmethod
@@ -23,6 +23,5 @@ class Explainer(ABC):
         pass
 
     @abstractmethod
-    def explain_local(self,
-                      x_data: [pd.DataFrame]) -> pd.DataFrame:
+    def explain_local(self, x_data: pd.DataFrame) -> pd.DataFrame:
         pass
