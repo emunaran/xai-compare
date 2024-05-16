@@ -4,49 +4,52 @@
 # This class wraps the lime explainer method
 #
 # ------------------------------------------------------------------------------------------------------
-import lime as lime
+import lime
 import numpy as np
 import pandas as pd
-from numpy import mean
 
 from Explainer import Explainer
 
+# Handle it later
+import warnings
+warnings.filterwarnings("ignore", category=UserWarning, message=".*X does not have valid feature names.*")
+
 
 class LIME(Explainer):
-    # initialize with void values
-    def _init_(self,
-               model=None,
-               x: [pd.DataFrame] = None,
-               y: [pd.DataFrame] = None):
-        self.model = model
-        self.x = x
-        self.y = y
 
-        # lime isn't built for global explanations
+    def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
+        local_exps = self.explain_local(X_data)
+        # Calculate the mean across rows to get the average effect of each feature globally
+        global_exp = np.mean(local_exps * X_data.values, axis=0)
+        # Transpose and convert to DataFrame to match the requested output format
+        return pd.DataFrame(global_exp, index=X_data.columns, columns=['LIME Value'])
 
-    def explain_global(self,
-                       x_data: pd.DataFrame) -> pd.DataFrame:
-        exp = self.explain_local(x_data)
-        global_exp = mean(exp, axis=0)
-        return global_exp
 
-    def explain_local(self,
-                      x_data: [pd.DataFrame]) -> pd.DataFrame:
-        explainer = lime.lime_tabular.LimeTabularExplainer(x_data.values,
-                                                           feature_names=x_data.columns.values.tolist(),
-                                                           class_names=['MEDV'], verbose=False, mode='regression')
-        # Explain the prediction using lime's built int explain_instance() function:
+    def explain_local(self, X_data: pd.DataFrame) -> pd.DataFrame:
+        # Initialize the LIME explainer for tabular data
+        explainer = lime.lime_tabular.LimeTabularExplainer(
+            training_data=X_data.values,
+            feature_names=X_data.columns.tolist(),
+            verbose=False, 
+            mode='regression'
+        )
+        
+        # List to store the coefficients for each instance
+        coefs = []
+        for row in X_data.to_numpy():
+            exp = explainer.explain_instance(
+                data_row=row, 
+                predict_fn=self.model.predict, 
+                num_features=len(X_data.columns), 
+                num_samples=100
+            )
+            # get coefs from explanation sorted by features, where expl[1] is a slope of feature expl[0]
+            sorted_exps = sorted(exp.local_exp[0])
+            slope_coefs = np.array([expl[1] for expl in sorted_exps])
+            coefs.append(slope_coefs)
 
-        numpy_X = x_data.to_numpy()
-        result = []
-        for i in numpy_X:
-            exp = explainer.explain_instance(i, self.model.predict,
-                                             num_features=x_data.columns.size, num_samples=100)
-            # Result.append({'coefficients': np.array([e[1] for e in exp.local_exp[0]]),
-            #                'intercept': exp.intercept[0]})
-
-            result.append(np.concatenate((np.array([e[1] for e in exp.local_exp[0]]), [exp.intercept[0]])))
-        local_exp = pd.DataFrame(data=result)
-        # or the predicted y data:
-        # exp = explainer.explain_instance(X_data.values, y_predict_data, num_features = X_data.columns.size)
+        column_names = X_data.columns.tolist()    
+        local_exp = pd.DataFrame(coefs, columns=column_names)
+    
         return local_exp
+

@@ -3,65 +3,78 @@
 #
 #
 # ------------------------------------------------------------------------------------------------------
-import lime
-import shap
+
+# Standard library imports
+import pandas as pd
+import numpy as np
+
+# Third party imports
 from sklearn.datasets import fetch_california_housing
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-from LIME import LIME
-from SHAP import SHAP
+# Local application imports
+from ExplainerFactory import ExplainerFactory
+from explainer_utilities import run_and_collect_explanations
 
-# make an Explainer using Explainer Factory
-# explainerFact = ExplainerFactory()
-# shapExplainer = explainerFact.create_explainer("shap")
 
-# use a dataset from the sklearn library for housing prices
+# Use a dataset from the sklearn library for housing prices
 dataset_1 = fetch_california_housing(as_frame=True)
-X_1 = dataset_1['data']
-y_1 = dataset_1['target']
-X_1 = X_1[:200]
-y_1 = y_1[:200]
+X = dataset_1['data']
+y = dataset_1['target']
+
+# Cut dataset for processing speed goal
+X_small = X[:1000]
+y_small = y[:1000]
 
 # Splits into X and Y first and then splits it further into validation data and training data
-# test size indicates the ratio of the training data pts to the total data pts.
-train_X, val_X, train_y, val_y = train_test_split(X, y, test_size=0.2)
+X_train, X_test, y_train, y_test = train_test_split(X_small, y_small, test_size=0.2)
+
+
+# Initialize the scaler
+scaler = StandardScaler()
+
+# Normalize the training data
+train_X_scaled = scaler.fit_transform(X_train)
+
+# Normalize the validation data using the same scaler
+val_X_scaled = scaler.transform(X_test)
+
+# Convert scaled data back to DataFrame
+X_train = pd.DataFrame(train_X_scaled, columns=X_train.columns)
+X_test = pd.DataFrame(val_X_scaled, columns=X_test.columns)
+
 
 # Create a random forest model then train it
 my_model = RandomForestRegressor(random_state=0)
-my_model.fit(train_X.to_numpy(), train_y.to_numpy())
-print()
-# After training,  this is the real fit
-y_pred = my_model.predict(val_X)
-print('done')
+my_model.fit(X_train, y_train)
+print('\n Model trained')
 
-# creating an explainer to show what the SHAP wrapper class's methods should output
-explainer = shap.TreeExplainer(my_model)
+# Initialize the ExplainerFactory with the trained model and data splits.
 
-# initializing all of the SHAP object's fields (setup)
-shapEx = SHAP(my_model, train_X, train_y, y_pred)
+expl_fctry = ExplainerFactory(my_model, X_train, X_test, y_train, y_test)
 
-# the following print statements are used to compare the wrapper class's method result with the expected result
-global_exp = shapEx.explain_global(val_X)
-# print(shapEx.explain_local(val_X, y_pred))
-# print(explainer.shap_values(X).std(axis=0))
-# Lime Tests:
+results = run_and_collect_explanations(expl_fctry, X_test)
+print(results)
 
-# creating an explainer to show what the LIME wrapper class's methods should output
-explainer = lime.lime_tabular.LimeTabularExplainer(train_X.values,
-                                                   feature_names=train_X.columns.values.tolist(),
-                                                   class_names=['MEDV'], verbose=True, mode='regression')
-limeEx = LIME(my_model, train_X, train_y, y_pred)
-limeEx.X = X.to_numpy()
-limeEx.y = y
-y_pred = my_model.predict(val_X.to_numpy())
+def plot_lime_shap(data, shap_column, lime_column):
+    
+    colors = sns.color_palette("deep")
+    plt.figure(figsize=(8, 6))    
+    
+    bar_positions = np.arange(len(data))  # Positions of the bars
+    bar_width = 0.35  # Bar widths
 
-# the following print statements are used to compare the wrapper class's method result with the expected result
-# print(limeEx.explain_local(val_X, val_y))
-# X_df = pd.DataFrame(X)
-# print("\n")
-# for i in val_X.to_numpy():
-#    print(explainer.explain_instance(i, my_model.predict, num_features=X_df.columns.size))
+    plt.barh(bar_positions - bar_width/2, data[shap_column], height=bar_width, label='SHAP', color=colors[0])  # PSHAP values
+    plt.barh(bar_positions + bar_width/2, data[lime_column], height=bar_width, label='LIME', color=colors[1])  # LIME values
+    plt.yticks(bar_positions, data.index)  #labels
 
+    plt.title('Feature Importances from SHAP and LIME')
+    plt.legend()
+    plt.show()
 
-#    print("\n")
+plot_lime_shap(results, 'SHAP Value', 'LIME Value')
+print('\n plotting completed')
