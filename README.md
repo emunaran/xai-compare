@@ -12,6 +12,9 @@ This repository aims to provide tools for comparing different explainability met
 ## Status
 This repository is under construction. Additional features and interpretability methods will be added in future updates.
 
+## Call for Contributors
+We're seeking individuals with expertise in machine learning, preferably explainable artificial intelligence (XAI), and proficiency in Python programming. If you have a background in these areas and are passionate about enhancing machine learning model transparency, we welcome your contributions. Join us in shaping the future of interpretable AI.
+
 ## File Structure
 - `main.py`: Main Python script demonstrating the usage of SHAP and LIME for model interpretability.
 - `LIME.py`: Wrapper class for LIME explanations.
