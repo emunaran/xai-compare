@@ -10,9 +10,9 @@ from typing import Any
 import pandas as pd
 import xgboost as xgb
 
-from Explainer import Explainer
-from LIME import LIME
-from SHAP import SHAP
+from explainer_comparison.Explainer import Explainer
+from explainer_comparison.LIME import LIME
+from explainer_comparison.SHAP import SHAP
 
 
 class ExplainerFactory:

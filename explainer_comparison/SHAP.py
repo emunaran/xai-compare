@@ -8,7 +8,7 @@ import numpy as np
 import shap as sh
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
-from Explainer import Explainer
+from explainer_comparison.Explainer import Explainer
 
 
 class SHAP(Explainer):
@@ -61,6 +61,9 @@ class SHAP(Explainer):
         :return: DataFrame of SHAP values for each feature and data point.
         """
         explainer_class = self.chooseExplainer(type(self.model).__name__)
-        explainer = explainer_class(self.model, self.X_train)
+
+        background_median = pd.DataFrame(np.median(x_data, axis=0), index=x_data.columns).T
+
+        explainer = explainer_class(self.model, background_median)
         shap_values = explainer.shap_values(x_data, check_additivity=False)
         return pd.DataFrame(shap_values, columns=x_data.columns)

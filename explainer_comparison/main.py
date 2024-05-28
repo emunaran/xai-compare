@@ -17,8 +17,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Local application imports
-from ExplainerFactory import ExplainerFactory
-from explainer_utilities import run_and_collect_explanations
+from explainer_comparison.ExplainerFactory import ExplainerFactory
+from explainer_comparison.explainer_utilities import run_and_collect_explanations
 
 
 # Use a dataset from the sklearn library for housing prices
