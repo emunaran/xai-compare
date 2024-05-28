@@ -8,7 +8,7 @@ import lime
 import numpy as np
 import pandas as pd
 
-from Explainer import Explainer
+from explainer_comparison.Explainer import Explainer
 
 # Handle it later
 import warnings
@@ -41,12 +41,13 @@ class LIME(Explainer):
                 data_row=row, 
                 predict_fn=self.model.predict, 
                 num_features=len(X_data.columns), 
-                num_samples=100
+                num_samples=500
             )
-            # get coefs from explanation sorted by features, where expl[1] is a slope of feature expl[0]
-            sorted_exps = sorted(exp.local_exp[0])
-            slope_coefs = np.array([expl[1] for expl in sorted_exps])
-            coefs.append(slope_coefs)
+
+            coeff_for_positive_pred = [expl[1] for expl in sorted(exp.local_exp[1])]
+            coeff_for_negative_pred = [expl[1] for expl in sorted(exp.local_exp[0])]
+            coeff_ = coeff_for_positive_pred if exp.predicted_value > 0 else coeff_for_negative_pred
+            coefs.append(coeff_)
 
         column_names = X_data.columns.tolist()    
         local_exp = pd.DataFrame(coefs, columns=column_names)

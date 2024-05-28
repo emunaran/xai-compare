@@ -1,5 +1,5 @@
 import pandas as pd
-from ExplainerFactory import ExplainerFactory
+from explainer_comparison.ExplainerFactory import ExplainerFactory
 
 def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=None) -> pd.DataFrame:
     results = []
