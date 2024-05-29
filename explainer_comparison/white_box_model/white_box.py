@@ -3,12 +3,14 @@ import numpy as np
 from sklearn.base import BaseEstimator, RegressorMixin
 import pandas as pd
 from sklearn.metrics import euclidean_distances
+from sklearn.preprocessing import StandardScaler
 
 
 class WhiteBoxRegressor(BaseEstimator, RegressorMixin):
     def __init__(self):
         # Known coefficients
-        self.coefficients_ = np.array([2, 3, -1, 5, -4, 0.5, 2, -3, 0.1, 1])
+        self.coef_ = np.array([2, 3, -1, 5, -4, 0.5, 2, -3, 0.1, 1])
+        self.intercept_ = 0
 
     def fit(self, X, y=None):
         # No fitting necessary for whitebox model with fixed coefficients
@@ -18,16 +20,16 @@ class WhiteBoxRegressor(BaseEstimator, RegressorMixin):
         # Prediction function using known coefficients
         if isinstance(X, pd.DataFrame):
             X = X.to_numpy()
-        y_pred = (self.coefficients_[0] * X[:, 0] +
-                  self.coefficients_[1] * X[:, 1] +
-                  self.coefficients_[2] * X[:, 2] +
-                  self.coefficients_[3] * X[:, 3] +
-                  self.coefficients_[4] * X[:, 4] +
-                  self.coefficients_[5] * X[:, 5] +
-                  self.coefficients_[6] * X[:, 6] +
-                  self.coefficients_[7] * X[:, 7] +
-                  self.coefficients_[8] * X[:, 8] +
-                  self.coefficients_[9] * X[:, 9])
+        y_pred = (self.coef_[0] * X[:, 0] +
+                  self.coef_[1] * X[:, 1] +
+                  self.coef_[2] * X[:, 2] +
+                  self.coef_[3] * X[:, 3] +
+                  self.coef_[4] * X[:, 4] +
+                  self.coef_[5] * X[:, 5] +
+                  self.coef_[6] * X[:, 6] +
+                  self.coef_[7] * X[:, 7] +
+                  self.coef_[8] * X[:, 8] +
+                  self.coef_[9] * X[:, 9])
         return y_pred
 
     def __call__(self, X):
@@ -50,6 +52,9 @@ class WhiteBoxRegressor(BaseEstimator, RegressorMixin):
         X[:, 9] = np.random.normal(0, 1, n_samples) if add_noise == True else np.linspace(0, 10, n_samples)
 
         df = pd.DataFrame(X, columns=[f"feature_{i+1}" for i in range(10)])
+
+        scaler = StandardScaler()
+        df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
         if with_y:
             df['y'] = self.predict(df)
