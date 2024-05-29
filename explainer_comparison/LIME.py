@@ -7,6 +7,7 @@
 import lime
 import numpy as np
 import pandas as pd
+from sklearn.linear_model import LinearRegression
 
 from explainer_comparison.Explainer import Explainer
 
@@ -20,7 +21,7 @@ class LIME(Explainer):
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         local_exps = self.explain_local(X_data)
         # Calculate the mean across rows to get the average effect of each feature globally
-        global_exp = np.mean(local_exps * X_data.values, axis=0)
+        global_exp = np.mean(local_exps, axis=0)
         # Transpose and convert to DataFrame to match the requested output format
         return pd.DataFrame(global_exp, index=X_data.columns, columns=['LIME Value'])
 
@@ -44,12 +45,11 @@ class LIME(Explainer):
                 num_samples=500
             )
 
-            coeff_for_positive_pred = [expl[1] for expl in sorted(exp.local_exp[1])]
-            coeff_for_negative_pred = [expl[1] for expl in sorted(exp.local_exp[0])]
-            coeff_ = coeff_for_positive_pred if exp.predicted_value > 0 else coeff_for_negative_pred
-            coefs.append(coeff_)
+            contributions = [(index, contribution) for (index, _), (_, contribution) in zip(exp.local_exp[0], exp.as_list())]
+            contributions_sorted_by_feature_order = [expl[1] for expl in sorted(contributions)]
+            coefs.append(contributions_sorted_by_feature_order)
 
-        column_names = X_data.columns.tolist()    
+        column_names = X_data.columns.tolist()
         local_exp = pd.DataFrame(coefs, columns=column_names)
     
         return local_exp
