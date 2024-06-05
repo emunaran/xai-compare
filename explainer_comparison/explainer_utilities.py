@@ -24,3 +24,36 @@ def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=N
         return pd.concat(results, axis=1)
     else:
         return pd.DataFrame()  # Return an empty DataFrame if no explanations were added
+
+
+def permutation_feature_importance(model, X_data, y_data, metric='accuracy', random_state=None):
+    """
+    Calculates permutation feature importance for a given model.
+    
+    Parameters:
+    - model: The trained machine learning model.
+    - X: The feature matrix.
+    - y: The target vector.
+    - metric: The metric to use for evaluating the model. Either 'accuracy' or 'mse'.
+    - random_state: The random seed for reproducibility.
+    
+    Returns:
+    - feature_importances_df: A DataFrame containing the feature names and their importance scores, sorted by scores.
+    """
+    if metric == 'accuracy':
+        baseline_score = accuracy_score(y_data, model.predict(X_data))
+        scorer = accuracy_score
+    elif metric == 'mse':
+        baseline_score = mean_squared_error(y_data, model.predict(X_data))
+        scorer = mean_squared_error
+    else:
+        raise ValueError("Invalid metric. Please choose 'accuracy' or 'mse'.")
+    
+    feature_importances = {}
+    for feature in X_data.columns:
+        X_data_permuted = X_data.copy()
+        X_data_permuted[feature] = np.random.permutation(X_data[feature])
+        permuted_score = scorer(y_data, model.predict(X_data_permuted))
+        feature_importances[feature] = baseline_score - permuted_score
+
+    return feature_importances
