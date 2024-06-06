@@ -34,13 +34,13 @@ class MimicExpl(Explainer):
             model_task=self.mode,
             classes=list(self.y_train.unique()) if self.mode == 'classification' else None,
             explainable_model_args={
-                'objective': 'binary' if len(self.y_train.unique())==2 else self.mode,
+                'objective': 'binary' if self.y_train.nunique().values[0]==2 else self.mode,
                 'verbose': -1
             }
         )
     
     def predict(self, X_data: pd.DataFrame) -> pd.DataFrame:
-        if self.mode=='classification' and len(self.y_train.unique()==2):
+        if self.mode=='classification' and self.y_train.nunique().values[0]==2:
             y_pred_proba = self.predict_proba(X_data)
             y_pred = (y_pred_proba >= 0.5).astype(int)
         else:

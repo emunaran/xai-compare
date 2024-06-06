@@ -6,6 +6,7 @@ from explainer_comparison.explainer_utilities import run_and_collect_explanation
 
 from sklearn.metrics import accuracy_score, mean_squared_error
 from sklearn.base import clone
+from sklearn.preprocessing import StandardScaler
 
 
 import matplotlib.pyplot as plt
@@ -45,7 +46,76 @@ def permutation_feature_importance(model, X_data, y_data, metric='accuracy', ran
 
 
 
-def evaluate_explainers(model, X_data, y_data, metric='mse', threshold=0.2, random_state=None):
+# def evaluate_explainers(model, X_data, y_data, metric='mse', threshold=0.2, random_state=None):
+#     # Copy the data to avoid modifying the original
+#     current_X = X_data.copy()
+#     current_y = y_data.copy()
+#     current_model = model
+
+#     # clone the model to get unfitted model
+#     base_model = clone(model)
+
+#     # Get the list of column names
+#     columns = X_data.columns.tolist()
+#     n = len(columns)
+#     remaining_features = n * threshold
+
+#     # Initialize variables to store SHAP and LIME MSE values
+#     shap_values_prev = None
+#     lime_values_prev = None
+#     shap_mse_values = []
+#     lime_mse_values = []
+
+#     # Loop until the number of features is reduced to the desired threshold
+#     while len(columns) > remaining_features:
+#         # Get SHAP and LIME values
+#         explainer_factory = ExplainerFactory(current_model, X_train=current_X, y_train=current_y)
+#         shap_lime_importance = run_and_collect_explanations(explainer_factory, current_X)
+#         shap_values = shap_lime_importance['SHAP Value']
+#         lime_values = shap_lime_importance['LIME Value']
+
+#         # Calculate MSE if this is not the first iteration
+#         if shap_values_prev is not None:
+#             shap_mse = mean_squared_error(shap_values_prev, shap_values)
+#             lime_mse = mean_squared_error(lime_values_prev, lime_values)
+#             shap_mse_values.append(shap_mse)
+#             lime_mse_values.append(lime_mse)
+
+#         # Update previous values for the next iteration
+#         shap_values_prev = shap_values.copy()
+#         lime_values_prev = lime_values.copy()
+
+#         # Calculate permutation feature importance
+#         feature_importances_dict = permutation_feature_importance(current_model, current_X, current_y, metric, random_state)
+#         feature_importances_df = pd.DataFrame.from_dict(feature_importances_dict, orient='index', columns=['importance'])
+
+#         # Find the least important feature
+#         sorted_feature_importances = feature_importances_df.sort_values(by='importance', ascending=True, key=abs)
+#         least_important_feature = sorted_feature_importances.index[0]
+
+#         # Print progress and results
+#         i = n - len(columns) + 1
+#         print(f'\n {i} features eliminated. Now the least_important_feature is ', least_important_feature)
+#         results = pd.concat([shap_lime_importance, feature_importances_df], axis=1)
+#         print(results)
+#         plot_results(results)
+
+#         # Drop the least important feature
+#         current_X = current_X.drop(columns=[least_important_feature])
+#         columns.remove(least_important_feature)
+
+#         # Remove the corresponding row from previous values
+#         shap_values_prev = shap_values_prev.drop(index=[least_important_feature])
+#         lime_values_prev = lime_values_prev.drop(index=[least_important_feature])
+
+#         # Retrain the model with the reduced feature set
+#         current_model = base_model
+#         current_model.fit(current_X, current_y)
+
+#     return shap_mse_values, lime_mse_values
+
+
+def evaluate_explainers(model, X_data, y_data, metric='mse', threshold=0.2, random_state=None, verbose=True, explainers=["shap", "lime", "ebm"]):
     # Copy the data to avoid modifying the original
     current_X = X_data.copy()
     current_y = y_data.copy()
@@ -62,27 +132,30 @@ def evaluate_explainers(model, X_data, y_data, metric='mse', threshold=0.2, rand
     # Initialize variables to store SHAP and LIME MSE values
     shap_values_prev = None
     lime_values_prev = None
-    shap_mse_values = []
-    lime_mse_values = []
+    res_list = []
+    list_el_feats = []
+    # shap_mse_values = []
+    # lime_mse_values = []
 
     # Loop until the number of features is reduced to the desired threshold
     while len(columns) > remaining_features:
         # Get SHAP and LIME values
         explainer_factory = ExplainerFactory(current_model, X_train=current_X, y_train=current_y)
-        shap_lime_importance = run_and_collect_explanations(explainer_factory, current_X)
-        shap_values = shap_lime_importance['SHAP Value']
-        lime_values = shap_lime_importance['LIME Value']
+        # shap_lime_importance = run_and_collect_explanations(explainer_factory, current_X)
+        current_importance = run_and_collect_explanations(explainer_factory, current_X, verbose=verbose, explainers=explainers)
+        # shap_values = shap_lime_importance['SHAP Value']
+        # lime_values = shap_lime_importance['LIME Value']
 
-        # Calculate MSE if this is not the first iteration
-        if shap_values_prev is not None:
-            shap_mse = mean_squared_error(shap_values_prev, shap_values)
-            lime_mse = mean_squared_error(lime_values_prev, lime_values)
-            shap_mse_values.append(shap_mse)
-            lime_mse_values.append(lime_mse)
+        # # Calculate MSE if this is not the first iteration
+        # if shap_values_prev is not None:
+        #     shap_mse = mean_squared_error(shap_values_prev, shap_values)
+        #     lime_mse = mean_squared_error(lime_values_prev, lime_values)
+        #     shap_mse_values.append(shap_mse)
+        #     lime_mse_values.append(lime_mse)
 
-        # Update previous values for the next iteration
-        shap_values_prev = shap_values.copy()
-        lime_values_prev = lime_values.copy()
+        # # Update previous values for the next iteration
+        # shap_values_prev = shap_values.copy()
+        # lime_values_prev = lime_values.copy()
 
         # Calculate permutation feature importance
         feature_importances_dict = permutation_feature_importance(current_model, current_X, current_y, metric, random_state)
@@ -91,36 +164,58 @@ def evaluate_explainers(model, X_data, y_data, metric='mse', threshold=0.2, rand
         # Find the least important feature
         sorted_feature_importances = feature_importances_df.sort_values(by='importance', ascending=True, key=abs)
         least_important_feature = sorted_feature_importances.index[0]
+        
 
         # Print progress and results
         i = n - len(columns) + 1
-        print(f'\n {i} features eliminated. Now the least_important_feature is ', least_important_feature)
-        results = pd.concat([shap_lime_importance, feature_importances_df], axis=1)
-        print(results)
-        plot_results(results)
+        if verbose:
+            print(f'\n {i} features eliminated. Now the least_important_feature is ', least_important_feature)
+        # results = pd.concat([shap_lime_importance, feature_importances_df], axis=1)
+
+        # # Create a new DataFrame for the rows to be added
+        # new_rows = pd.DataFrame({
+        #     'Plan': ['Ultra', 'Exclusive'],
+        #     'Monthly Cost': [30, 50],
+        #     'Data Limit (GB)': [200, 500]
+        # }, index=[3, 100])
+
+        # # Concatenate the existing and new DataFrames
+        # df = pd.concat([df, new_rows])
+        # print(df)
+
+        results = pd.concat([current_importance, feature_importances_df], axis=1)
+        if list_el_feats != []:
+            for f in list_el_feats:
+                results.loc[f] = [0] * results.shape[1]
+
+        res_list.append(results)
+
+        list_el_feats.append(least_important_feature)
 
         # Drop the least important feature
         current_X = current_X.drop(columns=[least_important_feature])
         columns.remove(least_important_feature)
 
-        # Remove the corresponding row from previous values
-        shap_values_prev = shap_values_prev.drop(index=[least_important_feature])
-        lime_values_prev = lime_values_prev.drop(index=[least_important_feature])
+        # # Remove the corresponding row from previous values
+        # shap_values_prev = shap_values_prev.drop(index=[least_important_feature])
+        # lime_values_prev = lime_values_prev.drop(index=[least_important_feature])
 
         # Retrain the model with the reduced feature set
         current_model = base_model
         current_model.fit(current_X, current_y)
 
-    return shap_mse_values, lime_mse_values
+    # return shap_mse_values, lime_mse_values
+    return res_list
 
 
-def plot_results(df):
+def plot_feat_importance(df):
 
-    max_importance = df['importance'].max()
-    std_importance = df['importance'].std()
+    # fidn rows with 0
+    zero_rows = (df == 0).all(axis=1)
+    df = df[~zero_rows]
+    print(f'The least_important_feature is', df['importance'].abs().idxmin())
 
-    # Apply z-score normalization to the 'importance' column
-    df['importance'] = (df['importance'] - max_importance) / std_importance
+    df= pd.DataFrame(StandardScaler().fit_transform(df), columns=df.columns, index=df.index)
 
     fig, ax = plt.subplots(figsize=(12, 6))
 
@@ -131,3 +226,33 @@ def plot_results(df):
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
+
+def evaluate_mse(results):
+
+    # Initialize variables to store SHAP and LIME MSE values
+    shap_values_prev = None
+    lime_values_prev = None
+    shap_mse_values = []
+    lime_mse_values = []
+
+    for df in results:
+        # get row idx with 0s
+        zero_rows_idx = df[(df == 0).all(axis=1)].index.values
+
+        # Get SHAP and LIME values
+        shap_values = df['SHAP Value']
+        lime_values = df['LIME Value']
+
+        # Calculate MSE if this is not the first iteration
+        if shap_values_prev is not None:
+            shap_mse = mean_squared_error(shap_values_prev.drop(index=zero_rows_idx), shap_values.drop(index=zero_rows_idx))
+            lime_mse = mean_squared_error(lime_values_prev.drop(index=zero_rows_idx), lime_values.drop(index=zero_rows_idx))
+            shap_mse_values.append(shap_mse)
+            lime_mse_values.append(lime_mse)
+        
+        # Update previous values for the next iteration
+        shap_values_prev = shap_values.copy()
+        lime_values_prev = lime_values.copy()
+
+    return shap_mse_values, lime_mse_values

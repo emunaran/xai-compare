@@ -5,6 +5,7 @@
 #
 # ------------------------------------------------------------------------------------------------------
 import interpret.glassbox
+from interpret import show
 import numpy as np
 import pandas as pd
 
@@ -40,7 +41,8 @@ class EBM(Explainer):
 
 
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
-        return self.explainer.explain_global()
+        # return self.explainer.explain_global()
+        return pd.DataFrame(self.explainer.explain_global().data()['scores'][:len(X_data.columns)], index=X_data.columns, columns=['EBM Value'])
 
 
     def explain_local(self, X_data: pd.DataFrame) -> pd.DataFrame:
