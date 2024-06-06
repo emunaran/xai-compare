@@ -125,36 +125,6 @@ def plot_feat_importance(df):
     plt.show()
 
 
-# def evaluate_mse(results):
-
-#     # Initialize variables to store SHAP and LIME MSE values
-#     shap_values_prev = None
-#     lime_values_prev = None
-#     shap_mse_values = []
-#     lime_mse_values = []
-
-#     for df in results:
-#         # get row idx with 0s
-#         zero_rows_idx = df[(df == 0).all(axis=1)].index.values
-
-#         # Get SHAP and LIME values
-#         shap_values = df['SHAP Value']
-#         lime_values = df['LIME Value']
-
-#         # Calculate MSE if this is not the first iteration
-#         if shap_values_prev is not None:
-#             shap_mse = mean_squared_error(shap_values_prev.drop(index=zero_rows_idx), shap_values.drop(index=zero_rows_idx))
-#             lime_mse = mean_squared_error(lime_values_prev.drop(index=zero_rows_idx), lime_values.drop(index=zero_rows_idx))
-#             shap_mse_values.append(shap_mse)
-#             lime_mse_values.append(lime_mse)
-        
-#         # Update previous values for the next iteration
-#         shap_values_prev = shap_values.copy()
-#         lime_values_prev = lime_values.copy()
-
-#     return shap_mse_values, lime_mse_values
-
-
 def evaluate_mse(results, explainer_keys=None):
     """
     Calculate MSE for multiple explainers' feature importance values across sequences of DataFrames.
