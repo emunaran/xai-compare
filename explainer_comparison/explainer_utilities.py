@@ -5,7 +5,14 @@ def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=N
     results = []
     available_explainers = ["shap", "lime", "ebm"]#, "mimic"]  # Easily extendable for additional explainers
     
-    chosen_explainers = explainers if explainers is not None else available_explainers
+    # chosen_explainers = explainers if explainers is not None else available_explainers
+
+    if explainers is None:
+        chosen_explainers = available_explainers
+    elif type(explainers)==list:
+        chosen_explainers = explainers
+    else:
+        chosen_explainers = [explainers]
 
     for explainer_type in chosen_explainers:
         explainer = factory.create_explainer(explainer_type)

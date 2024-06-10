@@ -63,8 +63,8 @@ class SHAP(Explainer):
         explainer_class = self.chooseExplainer(type(self.model).__name__)
 
         # background = pd.DataFrame(np.median(x_data, axis=0), index=x_data.columns).T
-        background = sh.kmeans(x_data, 5) if explainer_class.__name__ != "LinearExplainer" else x_data
+        background = sh.kmeans(x_data, 5).data if explainer_class.__name__ != "LinearExplainer" else x_data
 
         explainer = explainer_class(self.model, background)
-        shap_values = explainer.shap_values(x_data)
-        return pd.DataFrame(shap_values, columns=x_data.columns)
+        shap_values = explainer.shap_values(x_data, check_additivity=False)
+        return pd.DataFrame(np.vstack(shap_values), columns=x_data.columns)
