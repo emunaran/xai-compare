@@ -116,18 +116,18 @@ def evaluate_explainers(model, X_train, y_train, X_val, y_val, X_test, y_test, e
     remaining_features = n * threshold
 
     # Initialize variables to store resuts
-    res_list = []
-    list_el_feats = []
+    res_list = [] # list of feature importance
+    list_el_feats = [] # list of least important features
 
     res_model_eval = []
 
-    # evaluate the model
-    current_model_results = evaluate_models(current_model, current_X_train, current_y_train, \
-                                            current_X_val, current_y_val, current_X_test, current_y_test, mode)
-    res_model_eval.append(current_model_results)
-
     # Loop until the number of features is reduced to the desired threshold
     while len(columns) > remaining_features:
+
+        # evaluate the model
+        current_model_results = evaluate_models(current_model, current_X_train, current_y_train, current_X_val, \
+                                                current_y_val, current_X_test, current_y_test, mode)
+        res_model_eval.append(current_model_results)
 
         if explainer == 'permutation':
             # # Calculate permutation feature importance
@@ -143,7 +143,6 @@ def evaluate_explainers(model, X_train, y_train, X_val, y_val, X_test, y_test, e
         else:
             # Get explainer values
             explainer_factory = ExplainerFactory(current_model, X_train=current_X_train, y_train=current_y_train)
-            # shap_lime_importance = run_and_collect_explanations(explainer_factory, current_X)
             current_importance = run_and_collect_explanations(explainer_factory, current_X_train, verbose=verbose, explainers=explainer)
 
         # Find the least important feature
@@ -164,12 +163,7 @@ def evaluate_explainers(model, X_train, y_train, X_val, y_val, X_test, y_test, e
         # results = pd.concat([current_importance, feature_importances_df], axis=1)
         results = sorted_feature_importances
 
-        ## add rows with 0 for eliminated features
-        # if list_el_feats != []:
-        #     for f in list_el_feats:
-        #         results.loc[f] = [0] * results.shape[1]
-
-        res_list.append(results)
+        res_list.append(results) # add feature importance into the list
 
         list_el_feats.append(least_important_feature)
 
@@ -182,11 +176,6 @@ def evaluate_explainers(model, X_train, y_train, X_val, y_val, X_test, y_test, e
         # Retrain the model with the reduced feature set
         current_model = base_model
         current_model.fit(current_X_train, current_y_train)
-
-        # evaluate the model
-        current_model_results = evaluate_models(current_model, current_X_train, current_y_train, current_X_val, \
-                                                current_y_val, current_X_test, current_y_test, mode)
-        res_model_eval.append(current_model_results)
 
     # return a list of DataFrames with model evaluation results
     return [res_list, res_model_eval]
@@ -263,7 +252,20 @@ def choose_best_feature_set(model_ev_results, main_metric, data_type = 'val'):
     tdf = pd.DataFrame(tdict)
 
     tdf.plot(ax=ax)
-    plt.axvline(x = num_eliminated_feats, color = 'r')
+
+    # plt.axvline(x = num_eliminated_feats, color = 'r', linestyle='--')
+
+    plt.axvline(x=num_eliminated_feats, color='r', linestyle='--', label='Best feature set')
+
+    # Set y-axis limits
+    ax.set_ylim(0, 1)  # Set the limits of the y-axis to be from 0 to 1
+
+    # Set axis labels
+    ax.set_xlabel('Number of Features Eliminated')  # X-axis label
+    ax.set_ylabel('Evaluation Metric Value')       # Y-axis label
+
+    # Set the plot title
+    ax.set_title('Feature Elimination Analysis')  # Add a title to the plot
 
     plt.show()
 
@@ -285,9 +287,8 @@ def plot_feat_select_results(results_dict_upd):
     for explnr, results in results_dict_upd.items():
         ax = axs[0] if n_expl == 1 else axs[0, i]
         ax.axis('off')
-        # axs[0, i].axis('off')  # Hide the axes for the table
         pd.plotting.table(ax, round(results[1][results[2]]['test'], 4), loc='upper right', colWidths=[.5, .5])
-        ax.set_title(f'{explnr.upper()}\n{results[2]} fetures suggested \nto be removed')
+        ax.set_title(f'{explnr.upper()}\n{results[2]} features suggested \nto be removed')
         i += 1
 
     # Second row for bar plots
@@ -295,8 +296,11 @@ def plot_feat_select_results(results_dict_upd):
     for explnr, results in results_dict_upd.items():
         ax = axs[1] if n_expl == 1 else axs[1, i]
         results[0][results[2]].plot(kind='barh', ax=ax, legend=False)
-        ax.set_title(f'Fetures importance \nby {explnr.upper()}')
+        ax.set_title(f'Features importance \nby {explnr.upper()}')
         i += 1
+
+    # Set the main title for the figure
+    fig.suptitle('Overall Feature Selection Results', fontsize=16, fontweight='bold')
 
     plt.tight_layout()
     plt.show()

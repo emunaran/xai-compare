@@ -16,6 +16,8 @@ from explainer_comparison.SHAP import SHAP
 from explainer_comparison.EBM import EBM
 from explainer_comparison.MimicExpl import MimicExpl
 
+from explainer_comparison.constants import MODE
+
 
 class ExplainerFactory:
     # If user wants to use XGBoost explanation, model, X, and y must be filled in as parameters for init
@@ -41,12 +43,14 @@ class ExplainerFactory:
                  X_train: pd.DataFrame = None,
                  X_test: pd.DataFrame = None,
                  y_train: pd.DataFrame = None,
-                 y_test: pd.DataFrame = None):
+                 y_test: pd.DataFrame = None,
+                 mode: str = MODE.REGRESSION):
         self.model = model
         self.X_train = X_train
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
+        self.mode = mode
 
 
     def create_explainer(self, explainer_type: string) -> Explainer:
