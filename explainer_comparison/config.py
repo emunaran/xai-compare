@@ -6,3 +6,6 @@ class MODE:
     """
     CLASSIFICATION = 'classification'
     REGRESSION = 'regression'
+
+
+EXPLAINERS = ["shap", "lime", "ebm"] #, "mimic"]  # List of available explainers

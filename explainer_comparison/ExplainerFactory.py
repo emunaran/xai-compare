@@ -16,7 +16,7 @@ from explainer_comparison.SHAP import SHAP
 from explainer_comparison.EBM import EBM
 from explainer_comparison.MimicExpl import MimicExpl
 
-from explainer_comparison.constants import MODE
+from explainer_comparison.config import MODE
 
 
 class ExplainerFactory:

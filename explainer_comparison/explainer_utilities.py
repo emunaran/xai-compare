@@ -1,9 +1,10 @@
 import pandas as pd
 from explainer_comparison.ExplainerFactory import ExplainerFactory
+from explainer_comparison.config import EXPLAINERS
 
 def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=None, verbose=True) -> pd.DataFrame:
     results = []
-    available_explainers = ["shap", "lime", "ebm"]#, "mimic"]  # Easily extendable for additional explainers
+    available_explainers = EXPLAINERS  # Easily extendable for additional explainers
     
     # chosen_explainers = explainers if explainers is not None else available_explainers
 

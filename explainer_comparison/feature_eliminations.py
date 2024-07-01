@@ -3,7 +3,7 @@ import numpy as np
 
 from explainer_comparison.ExplainerFactory import ExplainerFactory
 from explainer_comparison.explainer_utilities import run_and_collect_explanations
-from explainer_comparison.constants import MODE
+from explainer_comparison.config import MODE
 
 from sklearn.metrics import accuracy_score, mean_squared_error, precision_score, recall_score, roc_auc_score, mean_absolute_error, f1_score
 from sklearn.base import clone
