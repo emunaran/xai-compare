@@ -67,4 +67,4 @@ class SHAP(Explainer):
 
         explainer = explainer_class(self.model, background)
         shap_values = explainer.shap_values(x_data, check_additivity=False)
-        return pd.DataFrame(shap_values[0], columns=x_data.columns)
+        return pd.DataFrame(shap_values[0] if len(shap_values)==2 else shap_values, columns=x_data.columns)
