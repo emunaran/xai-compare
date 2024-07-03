@@ -67,4 +67,19 @@ class SHAP(Explainer):
 
         explainer = explainer_class(self.model, background)
         shap_values = explainer.shap_values(x_data, check_additivity=False)
-        return pd.DataFrame(shap_values[0], columns=x_data.columns)
+        
+        if not isinstance(shap_values, list):
+            # Regression task or classification with linear model
+            shap_df = pd.DataFrame(shap_values, columns=x_data.columns)
+
+        elif len(shap_values)==2:
+            # Classification task
+            shap_df = pd.DataFrame(shap_values[0], columns=x_data.columns) # take only for 0 class
+
+        else:       # Multiclass
+            # Stack the arrays and average over classes (axis=-1)
+            stacked_shap_values = np.stack(np.abs(shap_values), axis=-1)
+            mean_abs_shap_values = np.mean(stacked_shap_values, axis=-1)
+            shap_df = pd.DataFrame(mean_abs_shap_values, columns=x_data.columns)
+
+        return shap_df
