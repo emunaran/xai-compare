@@ -13,6 +13,10 @@ import xgboost as xgb
 from explainer_comparison.Explainer import Explainer
 from explainer_comparison.LIME import LIME
 from explainer_comparison.SHAP import SHAP
+from explainer_comparison.EBM import EBM
+from explainer_comparison.MimicExpl import MimicExpl
+
+from explainer_comparison.config import MODE
 
 
 class ExplainerFactory:
@@ -39,12 +43,14 @@ class ExplainerFactory:
                  X_train: pd.DataFrame = None,
                  X_test: pd.DataFrame = None,
                  y_train: pd.DataFrame = None,
-                 y_test: pd.DataFrame = None):
+                 y_test: pd.DataFrame = None,
+                 mode: str = MODE.REGRESSION):
         self.model = model
         self.X_train = X_train
         self.X_test = X_test
         self.y_train = y_train
         self.y_test = y_test
+        self.mode = mode
 
 
     def create_explainer(self, explainer_type: string) -> Explainer:
@@ -54,6 +60,12 @@ class ExplainerFactory:
         elif explainer_type == "lime":
             limeEx = LIME(self.model, self.X_train, self.y_train)
             return limeEx
+        if explainer_type == "ebm":
+            ebmEx = EBM(self.model, self.X_train, self.y_train)
+            return ebmEx
+        elif explainer_type == "mimic":
+            mimicEx = MimicExpl(self.model, self.X_train, self.y_train)
+            return mimicEx
         #elif explainer_type == "xgboost":
         #    return self.create_xgb_global_feature_importance(self.model, self.X, self.y)
 
