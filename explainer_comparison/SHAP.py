@@ -73,8 +73,12 @@ class SHAP(Explainer):
             shap_df = pd.DataFrame(shap_values, columns=x_data.columns)
 
         elif len(shap_values)==2:
-            # Classification task
-            shap_df = pd.DataFrame(shap_values[0], columns=x_data.columns) # take only for 0 class
+            # Binary classification task
+            # In binary classification tasks, SHAP returns two items in the shap_values array.
+            # The item at index 0 represents the SHAP values for the negative class (label 0),
+            # and the item at index 1 represents the SHAP values for the positive class (label 1).
+            # Here, we are taking only the SHAP values for the negative class.
+            shap_df = pd.DataFrame(shap_values[0], columns=x_data.columns) 
 
         else:       # Multiclass
             # Stack the arrays and average over classes (axis=-1)
