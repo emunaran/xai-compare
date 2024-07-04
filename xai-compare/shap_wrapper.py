@@ -6,9 +6,9 @@
 import pandas as pd
 import numpy as np
 import shap as sh
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
-from explainer_comparison.Explainer import Explainer
+# Local application imports
+from explainer import Explainer
 
 
 class SHAP(Explainer):

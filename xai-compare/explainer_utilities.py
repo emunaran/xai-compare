@@ -1,6 +1,9 @@
 import pandas as pd
-from explainer_comparison.ExplainerFactory import ExplainerFactory
-from explainer_comparison.config import EXPLAINERS
+
+# Local application imports
+from explainer_factory import ExplainerFactory
+from config import EXPLAINERS
+
 
 def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=None, verbose=True) -> pd.DataFrame:
     results = []

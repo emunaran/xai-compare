@@ -4,19 +4,14 @@
 # This class wraps the interpret.ext.blackbox.MimicExplainer explainer method
 #
 # ------------------------------------------------------------------------------------------------------
-from interpret.ext.blackbox import MimicExplainer
 
 # You can use one of the following four interpretable models as a global surrogate to the black box model
+from interpret.ext.blackbox import MimicExplainer
 from interpret.ext.glassbox import LGBMExplainableModel
-#from interpret.ext.glassbox import LinearExplainableModel
-#from interpret.ext.glassbox import SGDExplainableModel
-#from interpret.ext.glassbox import DecisionTreeExplainableModel
-import numpy as np
 import pandas as pd
 
-
-from explainer_comparison.Explainer import Explainer
-
+# Local application imports
+from explainer import Explainer
 
 class MimicExpl(Explainer):
 
