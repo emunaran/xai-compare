@@ -8,15 +8,13 @@ import string
 from typing import Any
 
 import pandas as pd
-import xgboost as xgb
 
-from explainer_comparison.Explainer import Explainer
-from explainer_comparison.LIME import LIME
-from explainer_comparison.SHAP import SHAP
-from explainer_comparison.EBM import EBM
-from explainer_comparison.MimicExpl import MimicExpl
-
-from explainer_comparison.config import MODE
+# Local application imports
+from xai_compare.explainer import Explainer
+from xai_compare.explainers.lime_wrapper import LIME
+from xai_compare.explainers.shap_wrapper import SHAP
+from xai_compare.explainers.ebm_wrapper import EBM
+from xai_compare.config import MODE
 
 
 class ExplainerFactory:
@@ -63,26 +61,9 @@ class ExplainerFactory:
         if explainer_type == "ebm":
             ebmEx = EBM(self.model, self.X_train, self.y_train)
             return ebmEx
-        elif explainer_type == "mimic":
-            mimicEx = MimicExpl(self.model, self.X_train, self.y_train)
-            return mimicEx
-        #elif explainer_type == "xgboost":
-        #    return self.create_xgb_global_feature_importance(self.model, self.X, self.y)
 
         # If there are more explainers you want to account for, the code can be added here:
 
         else:
             # throw exception
             print("invalid Explainer")
-
-    # Check to see if you can restrict the type of the model and output.
-    #def create_xgb_global_feature_importance(self,
-    #                                         model: Any,
-    #                                         X: pd.DataFrame,
-    #                                         y: pd.DataFrame) -> Any:
-    #    if not isinstance(model, xgb.XGBClassifier):
-    #        raise ValueError("model must be an XGBoost model")
-    #    elif not isinstance(model, xgb.XGBRegressor):
-    #        raise ValueError("model must be an XGBoost model")
-    #    model.fit(X, y)
-    #    return model.feature_importances_

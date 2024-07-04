@@ -6,9 +6,11 @@ from sklearn.datasets import fetch_california_housing, load_iris, load_breast_ca
 from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
 from sklearn.model_selection import train_test_split
 
-from LIME import LIME
-from SHAP import SHAP
-from explainer_comparison.Explainer import Explainer
+from lime_wrapper import LIME
+from shap_wrapper import SHAP
+
+# Local application imports
+from xai_compare.explainer import Explainer
 
 
 # Using 3-4 existing datasets, either from SHAP, sklearn, or pandas is fine.

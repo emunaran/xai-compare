@@ -5,11 +5,10 @@
 #
 # ------------------------------------------------------------------------------------------------------
 import interpret.glassbox
-from interpret import show
-import numpy as np
 import pandas as pd
 
-from explainer_comparison.Explainer import Explainer
+# Local application imports
+from xai_compare.explainer import Explainer
 
 
 class EBM(Explainer):

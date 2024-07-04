@@ -6,9 +6,9 @@
 import pandas as pd
 import numpy as np
 import shap as sh
-from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
 
-from explainer_comparison.Explainer import Explainer
+# Local application imports
+from xai_compare.explainer import Explainer
 
 
 class SHAP(Explainer):
@@ -66,8 +66,12 @@ class SHAP(Explainer):
         background = sh.kmeans(x_data, 5).data if explainer_class.__name__ != "LinearExplainer" else x_data
 
         explainer = explainer_class(self.model, background)
-        shap_values = explainer.shap_values(x_data, check_additivity=False)
-        
+
+        try:
+            shap_values = explainer.shap_values(x_data)
+        except:
+            shap_values = explainer.shap_values(x_data, check_additivity=False)
+
         if not isinstance(shap_values, list):
             # Regression task or classification with linear model
             shap_df = pd.DataFrame(shap_values, columns=x_data.columns)

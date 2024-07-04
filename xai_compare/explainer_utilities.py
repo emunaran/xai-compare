@@ -1,6 +1,11 @@
 import pandas as pd
-from explainer_comparison.ExplainerFactory import ExplainerFactory
-from explainer_comparison.config import EXPLAINERS
+from sklearn.metrics import accuracy_score, mean_squared_error
+import numpy as np
+
+# Local application imports
+from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.config import EXPLAINERS
+
 
 def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=None, verbose=True) -> pd.DataFrame:
     results = []

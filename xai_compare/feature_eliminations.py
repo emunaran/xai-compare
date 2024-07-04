@@ -1,15 +1,13 @@
 import pandas as pd
 import numpy as np
-
-from explainer_comparison.ExplainerFactory import ExplainerFactory
-from explainer_comparison.explainer_utilities import run_and_collect_explanations
-from explainer_comparison.config import MODE
-
 from sklearn.metrics import accuracy_score, mean_squared_error, precision_score, recall_score, roc_auc_score, mean_absolute_error, f1_score
 from sklearn.base import clone
-# from sklearn.preprocessing import StandardScaler
-
 import matplotlib.pyplot as plt
+
+# Local application imports
+from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.explainer_utilities import run_and_collect_explanations
+from xai_compare.config import MODE
 
 def permutation_feature_importance(model, X_data, y_data, metric='accuracy', random_state=None):
     """
