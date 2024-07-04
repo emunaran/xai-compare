@@ -67,4 +67,23 @@ class SHAP(Explainer):
 
         explainer = explainer_class(self.model, background)
         shap_values = explainer.shap_values(x_data, check_additivity=False)
-        return pd.DataFrame(np.vstack(shap_values), columns=x_data.columns)
+        
+        if not isinstance(shap_values, list):
+            # Regression task or classification with linear model
+            shap_df = pd.DataFrame(shap_values, columns=x_data.columns)
+
+        elif len(shap_values)==2:
+            # Binary classification task
+            # In binary classification tasks, SHAP returns two items in the shap_values array.
+            # The item at index 0 represents the SHAP values for the negative class (label 0),
+            # and the item at index 1 represents the SHAP values for the positive class (label 1).
+            # Here, we are taking only the SHAP values for the positive class.
+            shap_df = pd.DataFrame(shap_values[1], columns=x_data.columns)
+
+        else:       # Multiclass
+            # Stack the arrays and average over classes (axis=-1)
+            stacked_shap_values = np.stack(np.abs(shap_values), axis=-1)
+            mean_abs_shap_values = np.mean(stacked_shap_values, axis=-1)
+            shap_df = pd.DataFrame(mean_abs_shap_values, columns=x_data.columns)
+
+        return shap_df
