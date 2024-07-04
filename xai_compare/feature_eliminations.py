@@ -5,9 +5,9 @@ from sklearn.base import clone
 import matplotlib.pyplot as plt
 
 # Local application imports
-from explainer_factory import ExplainerFactory
-from explainer_utilities import run_and_collect_explanations
-from config import MODE
+from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.explainer_utilities import run_and_collect_explanations
+from xai_compare.config import MODE
 
 def permutation_feature_importance(model, X_data, y_data, metric='accuracy', random_state=None):
     """

@@ -9,7 +9,7 @@ from typing import Union
 import numpy as np
 
 # Local application imports
-from config import MODE
+from xai_compare.config import MODE
 
 
 class Explainer(ABC):

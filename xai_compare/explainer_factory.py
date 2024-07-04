@@ -10,12 +10,11 @@ from typing import Any
 import pandas as pd
 
 # Local application imports
-from explainer import Explainer
-from lime_wrapper import LIME
-from shap_wrapper import SHAP
-from ebm_wrapper import EBM
-from mimic_expl_wrapper import MimicExpl
-from config import MODE
+from xai_compare.explainer import Explainer
+from xai_compare.explainers.lime_wrapper import LIME
+from xai_compare.explainers.shap_wrapper import SHAP
+from xai_compare.explainers.ebm_wrapper import EBM
+from xai_compare.config import MODE
 
 
 class ExplainerFactory:

@@ -1,8 +1,8 @@
 import pandas as pd
 
 # Local application imports
-from explainer_factory import ExplainerFactory
-from config import EXPLAINERS
+from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.config import EXPLAINERS
 
 
 def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=None, verbose=True) -> pd.DataFrame:

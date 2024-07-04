@@ -8,7 +8,7 @@ import interpret.glassbox
 import pandas as pd
 
 # Local application imports
-from explainer import Explainer
+from xai_compare.explainer import Explainer
 
 
 class EBM(Explainer):

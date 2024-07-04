@@ -10,7 +10,7 @@ from lime_wrapper import LIME
 from shap_wrapper import SHAP
 
 # Local application imports
-from explainer import Explainer
+from xai_compare.explainer import Explainer
 
 
 # Using 3-4 existing datasets, either from SHAP, sklearn, or pandas is fine.

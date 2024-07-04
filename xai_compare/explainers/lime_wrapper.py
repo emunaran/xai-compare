@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 # Local application imports
-from explainer import Explainer
+from xai_compare.explainer import Explainer
 
 # Handle it later
 import warnings
