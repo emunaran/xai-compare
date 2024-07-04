@@ -67,7 +67,10 @@ class SHAP(Explainer):
 
         explainer = explainer_class(self.model, background)
 
-        shap_values = explainer.shap_values(x_data)
+        try:
+            shap_values = explainer.shap_values(x_data)
+        except:
+            shap_values = explainer.shap_values(x_data, check_additivity=False)
 
         if not isinstance(shap_values, list):
             # Regression task or classification with linear model
