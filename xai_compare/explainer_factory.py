@@ -61,9 +61,6 @@ class ExplainerFactory:
         if explainer_type == "ebm":
             ebmEx = EBM(self.model, self.X_train, self.y_train)
             return ebmEx
-        elif explainer_type == "mimic":
-            mimicEx = MimicExpl(self.model, self.X_train, self.y_train)
-            return mimicEx
 
         # If there are more explainers you want to account for, the code can be added here:
 

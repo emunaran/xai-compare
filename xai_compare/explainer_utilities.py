@@ -1,4 +1,6 @@
 import pandas as pd
+from sklearn.metrics import accuracy_score, mean_squared_error
+import numpy as np
 
 # Local application imports
 from xai_compare.explainer_factory import ExplainerFactory

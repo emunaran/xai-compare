@@ -66,8 +66,9 @@ class SHAP(Explainer):
         background = sh.kmeans(x_data, 5).data if explainer_class.__name__ != "LinearExplainer" else x_data
 
         explainer = explainer_class(self.model, background)
-        shap_values = explainer.shap_values(x_data, check_additivity=False)
-        
+
+        shap_values = explainer.shap_values(x_data)
+
         if not isinstance(shap_values, list):
             # Regression task or classification with linear model
             shap_df = pd.DataFrame(shap_values, columns=x_data.columns)
