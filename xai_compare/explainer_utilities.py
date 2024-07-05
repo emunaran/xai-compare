@@ -40,20 +40,25 @@ def run_and_collect_explanations(factory: ExplainerFactory, X_data, explainers=N
         return pd.DataFrame()  # Return an empty DataFrame if no explanations were added
 
 
-def permutation_feature_importance(model, X_data, y_data, metric='accuracy', random_state=None):
+def permutation_feature_importance(model, X_data, y_data, metric='accuracy', n_repeats=5, random_state=None):
     """
     Calculates permutation feature importance for a given model.
     
     Parameters:
     - model: The trained machine learning model.
-    - X: The feature matrix.
-    - y: The target vector.
+    - X_data: The feature matrix.
+    - y_data: The target vector.
     - metric: The metric to use for evaluating the model. Either 'accuracy' or 'mse'.
+    - n_repeats: The number of times to permute a feature.
     - random_state: The random seed for reproducibility.
     
     Returns:
     - feature_importances_df: A DataFrame containing the feature names and their importance scores, sorted by scores.
     """
+    # Set random seed for reproducibility if specified
+    if random_state is not None:
+        np.random.seed(random_state)
+    
     if metric == 'accuracy':
         baseline_score = accuracy_score(y_data, model.predict(X_data))
         scorer = accuracy_score
@@ -63,11 +68,28 @@ def permutation_feature_importance(model, X_data, y_data, metric='accuracy', ran
     else:
         raise ValueError("Invalid metric. Please choose 'accuracy' or 'mse'.")
     
-    feature_importances = {}
+    # Initialize a dictionary to store importance scores for each feature
+    feature_importances = {feature: [] for feature in X_data.columns}
+    
+    # Loop over each feature to permute and evaluate its importance
     for feature in X_data.columns:
-        X_data_permuted = X_data.copy()
-        X_data_permuted[feature] = np.random.permutation(X_data[feature])
-        permuted_score = scorer(y_data, model.predict(X_data_permuted))
-        feature_importances[feature] = baseline_score - permuted_score
+        for _ in range(n_repeats):
+            # Permute the current feature
+            X_data_permuted = X_data.copy()
+            X_data_permuted[feature] = np.random.permutation(X_data[feature])
+            # Evaluate the model with the permuted feature and calculate the importance score
+            permuted_score = scorer(y_data, model.predict(X_data_permuted))
+            feature_importances[feature].append(baseline_score - permuted_score)
 
-    return feature_importances
+    # Average the importance scores over the number of repeats
+    averaged_importances = {feature: np.mean(importances) for feature, importances in feature_importances.items()}
+    
+    # Normalize the importance scores to sum to 1 (for comparability with other explainers)
+    total_importance = sum(averaged_importances.values())
+    normalized_importances = {feature: importance / total_importance for feature, importance in averaged_importances.items()}
+    
+    # Convert to DataFrame 
+    feature_importances_df = pd.DataFrame.from_dict(normalized_importances, orient='index', columns=['importance'])
+    feature_importances_df = feature_importances_df.sort_values(by='importance', ascending=False)
+    
+    return feature_importances_df
