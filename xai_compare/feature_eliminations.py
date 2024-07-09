@@ -8,79 +8,8 @@ import matplotlib.pyplot as plt
 from xai_compare.explainer_factory import ExplainerFactory
 from xai_compare.explainer_utilities import run_and_collect_explanations
 from xai_compare.config import MODE
-
-def permutation_feature_importance(model, X_data, y_data, metric='accuracy', random_state=None):
-    """
-    Calculates permutation feature importance for a given model.
     
-    Parameters:
-    - model: The trained machine learning model.
-    - X: The feature matrix.
-    - y: The target vector.
-    - metric: The metric to use for evaluating the model. Either 'accuracy' or 'mse'.
-    - random_state: The random seed for reproducibility.
-    
-    Returns:
-    - feature_importances_df: A DataFrame containing the feature names and their importance scores, sorted by scores.
-    """
-    if metric == 'accuracy':
-        baseline_score = accuracy_score(y_data, model.predict(X_data))
-        scorer = accuracy_score
-    elif metric == 'mse':
-        baseline_score = mean_squared_error(y_data, model.predict(X_data))
-        scorer = mean_squared_error
-    else:
-        raise ValueError("Invalid metric. Please choose 'accuracy' or 'mse'.")
-    
-    feature_importances = {}
-    for feature in X_data.columns:
-        X_data_permuted = X_data.copy()
-        X_data_permuted[feature] = np.random.permutation(X_data[feature])
-        permuted_score = scorer(y_data, model.predict(X_data_permuted))
-        feature_importances[feature] = baseline_score - permuted_score
 
-    return feature_importances
-    
-def permutation_feature_importance_new(model, X_data, random_state=None):
-    """
-    Calculates permutation feature importance for a given model.
-    
-    Parameters:
-    - model: The trained machine learning model.
-    - X: The feature matrix.
-    - random_state: The random seed for reproducibility.
-    
-    Returns:
-    - feature_importances: A dictionary containing the feature names and their mean importance.
-    """
-
-    # the importance by the permutation importance method goes as follows:
-    # the more the intervened model decreases in its performance compared to the original model - the permutated feature is more important.
-
-    # however, the explanations based on this method are as follows:
-    # the local effect of each feature is measured by taking the differencing between the original local prediction to the intervened model local prediction:
-    # original model predict(x) outcome minus intervened model predict(x).
-    
-    feature_importances = {}
-    for feature in X_data.columns:
-        X_data_permuted = X_data.copy()
-        X_data_permuted[feature] = np.random.permutation(X_data[feature])
-        feature_importances[feature] = np.mean(model.predict(X_data) - model.predict(X_data_permuted))
-    return feature_importances
-
-
-# - fit explainability method (each one separately).
-
-# - for each explainability method (SHAP, LIME, Permutation, etc.) one should extract the global explanation in the 
-# form of "feature impact" (aggregation of all local feature impact).
-
-# - apply absolute value on the global explanation results to get the feature importance for each XAI method.
-
-# - sort the list to have the order of the least to the most important features.
-
-# - start an iterative process of eliminating the least important feature in each iteration 
-# and store the evaluation on the train, validation, and test sets (train will be store for reporting) - 
-# for classification store accuracy, precision, recall, auc. regression - MSE, MAE
 def get_feature_elimination_results(list_explainers, model, X_train, y_train, X_val, y_val, \
                                     X_test, y_test, mode, threshold=0.2, random_state=None, verbose=True):
     """
@@ -162,22 +91,10 @@ def evaluate_explainer(model, X_train, y_train, X_val, y_val, X_test, y_test, ex
         current_model_results = evaluate_models(current_model, X_train, y_train, X_val, \
                                                 y_val, X_test, y_test, mode)
         res_model_eval.append(current_model_results)
-
-        if explainer == 'permutation':
-            # # Calculate permutation feature importance
-            current_importance_dict = permutation_feature_importance(current_model, X_train, y_train, metric=metric, random_state=random_state) # current_y, metric,
-            current_importance = pd.DataFrame.from_dict(current_importance_dict, orient='index', columns=['Permutation Value'])
-
-        # temporary solution
-        elif explainer == 'permutation_new':
-            # # Calculate permutation feature importance
-            current_importance_dict = permutation_feature_importance_new(current_model, X_train, random_state=random_state) # current_y, metric,
-            current_importance = pd.DataFrame.from_dict(current_importance_dict, orient='index', columns=['Permutation Value'])
-        
-        else:
-            # Get explainer values
-            explainer_factory = ExplainerFactory(current_model, X_train=X_train, y_train=y_train)
-            current_importance = run_and_collect_explanations(explainer_factory, X_train, verbose=verbose, explainers=explainer)
+    
+        # Get explainer values
+        explainer_factory = ExplainerFactory(current_model, X_train=X_train, y_train=y_train)
+        current_importance = run_and_collect_explanations(explainer_factory, X_train, verbose=verbose, explainers=explainer)
 
         # Find the least important feature
         # - apply absolute value on the global explanation results to get the feature importance for each XAI method.

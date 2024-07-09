@@ -13,7 +13,7 @@ import pandas as pd
 from xai_compare.explainer import Explainer
 from xai_compare.explainers.lime_wrapper import LIME
 from xai_compare.explainers.shap_wrapper import SHAP
-from xai_compare.explainers.ebm_wrapper import EBM
+from xai_compare.explainers.permutation_wrapper import PermutationFeatureImportance
 from xai_compare.config import MODE
 
 
@@ -58,6 +58,10 @@ class ExplainerFactory:
         elif explainer_type == "lime":
             limeEx = LIME(self.model, self.X_train, self.y_train)
             return limeEx
+        elif explainer_type == "permutations":
+            permEx = PermutationFeatureImportance(self.model, self.X_train, self.y_train)
+            return permEx
+
 
         # If there are more explainers you want to account for, the code can be added here:
 
