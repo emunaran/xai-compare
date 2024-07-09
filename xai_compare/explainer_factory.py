@@ -58,9 +58,6 @@ class ExplainerFactory:
         elif explainer_type == "lime":
             limeEx = LIME(self.model, self.X_train, self.y_train)
             return limeEx
-        if explainer_type == "ebm":
-            ebmEx = EBM(self.model, self.X_train, self.y_train)
-            return ebmEx
 
         # If there are more explainers you want to account for, the code can be added here:
 

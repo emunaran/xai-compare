@@ -8,4 +8,4 @@ class MODE:
     REGRESSION = 'regression'
 
 
-EXPLAINERS = ["shap", "lime", "ebm"] #, "mimic"]  # List of available explainers
+EXPLAINERS = ["shap", "lime"]  # List of available explainers
