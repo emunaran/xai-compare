@@ -5,7 +5,7 @@ from tqdm import tqdm
 from sklearn.model_selection import KFold, StratifiedKFold
 
 # Local application imports
-from xai_compare.ExplainerFactory import ExplainerFactory
+from xai_compare.explainer_factory import ExplainerFactory
 from xai_compare.explainer_utilities import run_and_collect_explanations
 
 def visualize_consistency(explainers, feature_names, summary):
