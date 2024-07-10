@@ -66,7 +66,7 @@ def evaluate_explainer(model, X_train, y_train, X_val, y_val, X_test, y_test, ex
     current_model = model
 
     # clone the model to get unfitted model
-    base_model = clone(model)
+    unfitted_model = clone(model)
 
     if mode == MODE.CLASSIFICATION:
         metric = 'accuracy'
@@ -123,16 +123,13 @@ def evaluate_explainer(model, X_train, y_train, X_val, y_val, X_test, y_test, ex
         columns.remove(least_important_feature)
 
         # Retrain the model with the reduced feature set
-        current_model = base_model
+        current_model = unfitted_model
         current_model.fit(X_train, y_train)
 
     # return a list of DataFrames with model evaluation results
     return [res_list, res_model_eval]
 
 
-# # - start an iterative process of eliminating the least important feature in each iteration 
-# and store the evaluation on the train, validation, and test sets (train will be store for reporting) 
-# - for classification store accuracy, precision, recall, auc. regression - MSE, MAE
 def evaluate_models(model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
     """
     Evaluates a model's performance metrics on training, validation, and test datasets.
@@ -185,8 +182,6 @@ def evaluate_models(model, X_train, y_train, X_val, y_val, X_test, y_test, mode)
 
     return res_df
 
-# - programmatically chose the best set of features based on a chosen evaluation metric (accuracy/ precision/ MSE...). 
-# you can do that by applying argmax operation. iteration here = number of features to eliminate.
 
 def add_best_feature_set(results_dict, mode, visualization=True):
     """
@@ -271,7 +266,6 @@ def choose_best_feature_set(model_ev_results, main_metric, data_type = 'val', vi
     return num_eliminated_feats  
 
 
-# - after applying the process for each XAI method you should display the test score side by side
 def plot_feature_selection_outcomes(results_dict_upd):
     """
     This function generate visualization of performance metrics for selected feature sets evaluated on the test set.
