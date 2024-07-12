@@ -159,19 +159,19 @@ def evaluate_models(model, X_train, y_train, X_val, y_val, X_test, y_test, mode)
     for y, y_pred, name in [train_tpl, val_tpl, test_tpl]:
 
         if mode == MODE.CLASSIFICATION:
-            res_dict['accuracy'] = accuracy_score(y, y_pred)
-            res_dict['precision'] = precision_score(y, y_pred)
-            res_dict['recall'] = recall_score(y, y_pred)
-            res_dict['f1'] = f1_score(y, y_pred)
+            res_dict['Accuracy'] = accuracy_score(y, y_pred)
+            res_dict['Precision'] = precision_score(y, y_pred)
+            res_dict['Recall'] = recall_score(y, y_pred)
+            res_dict['F1_score'] = f1_score(y, y_pred)
 
             try:
-                res_dict['auc'] = roc_auc_score(y, y_pred)
+                res_dict['AUC'] = roc_auc_score(y, y_pred)
             except:
                 pass
         
         else:
-            res_dict['mse'] = mean_squared_error(y, y_pred)
-            res_dict['mae'] = mean_absolute_error(y, y_pred)
+            res_dict['MSE'] = mean_squared_error(y, y_pred)
+            res_dict['MAE'] = mean_absolute_error(y, y_pred)
 
         tmp_res_df = pd.DataFrame.from_dict(res_dict, orient='index', columns=[name])
         
@@ -200,9 +200,9 @@ def add_best_feature_set(results_dict, mode, visualization=True):
     """
 
     if mode == MODE.CLASSIFICATION:
-        main_metric = 'accuracy'
+        main_metric = 'Accuracy'
     else:
-        main_metric = 'mse'
+        main_metric = 'MSE'
 
     results_dict_upd = results_dict.copy()
 
