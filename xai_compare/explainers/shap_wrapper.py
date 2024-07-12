@@ -13,6 +13,7 @@ from xai_compare.explainer import Explainer
 
 class SHAP(Explainer):
     # initialize with void values
+    __name__ = "SHAP"
 
     def explain_global(self, x_data: pd.DataFrame) -> pd.DataFrame:
         """

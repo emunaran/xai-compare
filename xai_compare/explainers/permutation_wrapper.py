@@ -13,13 +13,13 @@ from xai_compare.explainer import Explainer
 
 
 class PermutationFeatureImportance(Explainer):
+    __name__ = "permutation"
+
     def __init__(self, model, X_train, y_train, num_permutations=5, random_state=None, mode='regression'):
-        self.model = model
-        self.X_train = X_train
-        self.y_train = y_train
+        super().__init__(model, X_train, y_train, mode=mode) # pass parameters to the parent class
+
         self.num_permutations = num_permutations
         self.random_state = random_state
-        self.mode = mode
  
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """

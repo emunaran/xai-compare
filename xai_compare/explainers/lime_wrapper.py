@@ -18,6 +18,8 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*X does not ha
 
 class LIME(Explainer):
 
+    __name__ = "LIME"
+
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         local_exps = self.explain_local(X_data)
         # Calculate the mean across rows to get the average effect of each feature globally

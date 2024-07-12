@@ -14,7 +14,7 @@ from xai_compare.explainer import Explainer
 from xai_compare.explainers.lime_wrapper import LIME
 from xai_compare.explainers.shap_wrapper import SHAP
 from xai_compare.explainers.permutation_wrapper import PermutationFeatureImportance
-from xai_compare.config import MODE
+from xai_compare.config import MODE, EXPLAINERS
 
 
 class ExplainerFactory:
