@@ -53,13 +53,22 @@ class ExplainerFactory:
 
     def create_explainer(self, explainer_type: string) -> Explainer:
         if explainer_type == "shap":
-            shapEx = SHAP(self.model, self.X_train, self.y_train)
+            if self.model:
+                shapEx = SHAP(self.model, self.X_train, self.y_train)
+            else:
+                shapEx = SHAP
             return shapEx
         elif explainer_type == "lime":
-            limeEx = LIME(self.model, self.X_train, self.y_train)
+            if self.model:
+                limeEx = LIME(self.model, self.X_train, self.y_train)
+            else:
+                limeEx = LIME
             return limeEx
         elif explainer_type == "permutations":
-            permEx = PermutationFeatureImportance(self.model, self.X_train, self.y_train)
+            if self.model:
+                permEx = PermutationFeatureImportance(self.model, self.X_train, self.y_train)
+            else:
+                permEx = PermutationFeatureImportance
             return permEx
 
 

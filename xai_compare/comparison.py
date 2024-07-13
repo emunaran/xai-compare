@@ -32,7 +32,7 @@ class Comparison(ABC):
 
     def create_list_explainers(self, custom_explainer):
 
-        list_explainers = [ExplainerFactory(self.model, self.data, self.y).create_explainer(explainer_name) for explainer_name in EXPLAINERS]
+        list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in EXPLAINERS]
 
         if custom_explainer:
             list_explainers.extend(custom_explainer)
