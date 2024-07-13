@@ -74,7 +74,7 @@ class Consistency(Comparison):
             mean_impact, std_impact = self.summary[explainer.__name__]
             ax.barh(self.data.columns, mean_impact.flatten(), xerr=std_impact.flatten(), align='center', alpha=0.7, ecolor='black', capsize=5)
             ax.set_xlabel('Mean Feature Impact')
-            ax.set_title(f'Feature Impact and standard deviation - {explainer.__name__.upper()}')
+            ax.set_title(f'Feature Impact and standard deviation \n {explainer.__name__.upper()}')
 
         plt.tight_layout()
         plt.show()
@@ -123,7 +123,7 @@ class Consistency(Comparison):
 
             for explainer in self.list_explainers:
                 explainer_instance = copy.copy(explainer) 
-                explainer_instance = explainer_instance(self.model, X_train, X_test, y_train, y_test)
+                explainer_instance = explainer_instance(self.model, X_train, y_train)
                 explainer_values = run_and_collect_explanations_upd(explainer_instance, X_train, verbose=self.verbose)
                 results[explainer.__name__].append(explainer_values)
 
