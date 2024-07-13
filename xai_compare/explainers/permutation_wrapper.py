@@ -6,16 +6,24 @@
 # ------------------------------------------------------------------------------------------------------
 import numpy as np
 import pandas as pd
+from typing import Union
 from sklearn.metrics import accuracy_score, mean_squared_error
 
 # Local application imports
 from xai_compare.explainer import Explainer
+from xai_compare.config import MODE
 
 
 class PermutationFeatureImportance(Explainer):
     __name__ = "permutation"
 
-    def __init__(self, model, X_train, y_train, num_permutations=5, random_state=None, mode='regression'):
+    def __init__(self, 
+                 model, 
+                 X_train: pd.DataFrame, 
+                 y_train: Union[pd.DataFrame, pd.Series, np.ndarray],
+                 mode: str = MODE.REGRESSION, 
+                 num_permutations=5, 
+                 random_state=None):
         super().__init__(model, X_train, y_train, mode=mode) # pass parameters to the parent class
 
         self.num_permutations = num_permutations
@@ -33,9 +41,9 @@ class PermutationFeatureImportance(Explainer):
         """
         np.random.seed(self.random_state)
 
-        if self.mode == 'classification':
+        if self.mode == MODE.CLASSIFICATION:
             scorer = accuracy_score
-        elif self.mode == 'regression':
+        elif self.mode == MODE.REGRESSION:
             scorer = mean_squared_error
 
         # Initialize a dictionary to store importance scores for each feature
