@@ -34,7 +34,7 @@ class LIME(Explainer):
             training_data=X_data.values,
             feature_names=X_data.columns.tolist(),
             verbose=False, 
-            mode='regression'
+            mode=self.mode
         )
         
         # List to store the coefficients for each instance
