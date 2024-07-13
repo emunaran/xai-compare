@@ -21,18 +21,21 @@ class Comparison(ABC):
                  custom_explainer = None,
                  mode: str = MODE.REGRESSION, 
                  random_state=42, 
-                 verbose=True):
+                 verbose=True,
+                 default_explainers=EXPLAINERS):
         self.model = model
         self.data = data
         self.y = target
         self.mode: str = mode
         self.random_state = random_state
         self.verbose = verbose
+        self.default_explainers = default_explainers
         self.list_explainers = self.create_list_explainers(custom_explainer)
+
 
     def create_list_explainers(self, custom_explainer):
 
-        list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in EXPLAINERS]
+        list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:
             list_explainers.extend(custom_explainer)
