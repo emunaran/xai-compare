@@ -26,6 +26,40 @@ from xai_compare.explainer_utilities import run_and_collect_explanations_upd
 
 
 class Comparison(ABC):
+    """
+    Base class for model comparison that handles various explainer analyses.
+
+    This abstract class provides a framework for comparing explanation methods 
+    to assess feature importance and explainer consistency.
+
+    Parameters:
+    ----------
+    model : model object
+        The input machine learning model.
+    data : pd.DataFrame
+        The feature dataset used for model training and explanation.
+    target : Union[pd.DataFrame, pd.Series, np.ndarray]
+        The target variables associated with the data.
+    custom_explainer : optional
+        Custom explainer instances to be added to the default explainers,
+        should be made with the framework from explainer.py
+    mode : str, default MODE.REGRESSION
+        The mode of operation from confrg.py
+    random_state : int, default 42
+        Seed used by the random number generator for reproducibility.
+    verbose : bool, default True
+        Enables verbose output during operations.
+    default_explainers : list
+        List of default explainers from config.py
+
+    Methods:
+    -------
+    comparison_report()
+        Abstract method to generate a comparison report based on the explainer outputs.
+    best_result()
+        Abstract method to determine the best result from the comparison analysis.
+    """
+
     def __init__(self,
                  model,
                  data: pd.DataFrame,
@@ -46,6 +80,19 @@ class Comparison(ABC):
 
 
     def create_list_explainers(self, custom_explainer):
+        """
+        Creates a list of explainer classes from default and custom explainers.
+
+        Parameters:
+        ----------
+        custom_explainer : list
+            Custom explainer or a list of custom explainer classes.
+
+        Returns:
+        -------
+        list
+            A list of initialized explainer classes.
+        """
 
         list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in self.default_explainers]
 
@@ -260,12 +307,35 @@ class FeatureElimination(Comparison):
 
 
     def train_test_val(self):
+        """
+        Splits the data into training, validation, and testing sets.
+
+        This method splits the data into a training set, a validation set, and a testing set.
+        It uses a stratified split to maintain the distribution of the target variable across the sets.
+
+        Returns:
+        -------
+        tuple:
+            - X_train (pd.DataFrame): Training features.
+            - y_train (Union[pd.DataFrame, pd.Series, np.ndarray]): Training target.
+            - X_val (pd.DataFrame): Validation features.
+            - y_val (Union[pd.DataFrame, pd.Series, np.ndarray]): Validation target.
+            - X_test (pd.DataFrame): Testing features.
+            - y_test (Union[pd.DataFrame, pd.Series, np.ndarray]): Testing target.
+        """
         X_train, X_tmp, y_train, y_tmp = train_test_split(self.data, self.y, test_size=0.5, random_state=self.random_state)  
         X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.4, random_state=self.random_state)  
         return X_train, y_train, X_val, y_val, X_test, y_test
 
 
     def comparison_report(self):
+        """
+        Generates a comparison report of the feature elimination process.
+
+        This method checks if results from feature elimination are already calculated and available.
+        If results are available, it calls `plot_feature_selection_outcomes` to visualize them.
+        Otherwise, it calls `best_result` to perform feature elimination and visualize the outcomes.
+        """
         if self.df_expl_results is not None:
             self.plot_feature_selection_outcomes()
         else:
@@ -273,6 +343,19 @@ class FeatureElimination(Comparison):
 
 
     def best_result(self, visualization=False):
+        """
+        Determines the best feature set based on the specified metric and optionally visualizes the results.
+
+        Parameters:
+        ----------
+        visualization : bool, optional
+            If True, enables the visualization of feature elimination outcomes.
+
+        Returns:
+        -------
+        The maximum value of the specified evaluation metric across all explainer results,
+        indicating the best feature set performance.
+        """
 
         self.visualization = visualization
 

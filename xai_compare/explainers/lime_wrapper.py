@@ -10,6 +10,7 @@ import pandas as pd
 
 # Local application imports
 from xai_compare.explainer import Explainer
+from xai_compare.config import MODE
 
 # Handle it later
 import warnings
@@ -34,7 +35,7 @@ class LIME(Explainer):
             training_data=X_data.values,
             feature_names=X_data.columns.tolist(),
             verbose=False, 
-            mode=self.mode
+            mode=MODE.REGRESSION
         )
         
         # List to store the coefficients for each instance

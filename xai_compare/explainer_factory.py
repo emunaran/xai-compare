@@ -18,24 +18,20 @@ from xai_compare.config import MODE, EXPLAINERS
 
 
 class ExplainerFactory:
-    # If user wants to use XGBoost explanation, model, X, and y must be filled in as parameters for init
-    # all possible parameters are set to None as default.
-    '''def __init__(self,
-                 model: Any = None,
-                 X: pd.DataFrame = None,
-                 y: pd.DataFrame = None,
-                 val_X: pd.DataFrame = None,
-                 train_X: pd.DataFrame = None,
-                 val_y: pd.DataFrame = None,
-                 train_y: pd.DataFrame = None):
-        self.model = model
-        self.X = X
-        self.y = y
-        self.val_X = val_X
-        self.val_y = val_y
-        self.train_X = train_X
-        self.train_y = train_y'''
+    """
+    A class for creating classes or instances of various explainer types based on the given model and data.
 
+    This class simplifies the process of instantiating different types of explainers by providing a common interface
+    to specify the necessary training and testing datasets along with the model.
+
+    Attributes:
+        model (Any): The machine learning model to be explained.
+        X_train (pd.DataFrame): Training features dataset.
+        X_test (pd.DataFrame): Testing features dataset.
+        y_train (pd.DataFrame): Training target dataset.
+        y_test (pd.DataFrame): Testing target dataset.
+        mode (str): Mode of operation, specifies if the model is for 'regression' or 'classification'.
+    """
     def __init__(self,
                  model: Any = None,
                  X_train: pd.DataFrame = None,
@@ -52,6 +48,21 @@ class ExplainerFactory:
 
 
     def create_explainer(self, explainer_type: string) -> Explainer:
+        """
+        Creates and returns an explainer object based on the specified type.
+
+        This method allows for dynamic creation of different types of explainer objects based on a predefined string
+        identifier. If the model is not set, it returns the class of the explainer for manual instantiation.
+
+        Parameters:
+            explainer_type (str): A string identifier for the explainer type. Valid options are "shap", "lime", "permutations".
+
+        Returns:
+            Explainer: An instance of the requested explainer type with the provided model and data.
+
+        Raises:
+            ValueError: If the explainer_type is not recognized or unsupported.
+        """
         if explainer_type == "shap":
             if self.model:
                 shapEx = SHAP(self.model, self.X_train, self.y_train)
