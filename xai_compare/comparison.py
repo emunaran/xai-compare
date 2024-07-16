@@ -102,11 +102,11 @@ class Comparison(ABC):
         return list_explainers
 
     @abstractmethod
-    def comparison_report(self):
+    def apply(self):
         pass
 
     @abstractmethod
-    def best_result(self):
+    def display(self):
         pass
 
 
@@ -138,20 +138,30 @@ class Consistency(Comparison):
         self.n_splits = n_splits
         self.consistency_scores_df = None
 
-    def comparison_report(self):
-        if self.consistency_scores_df is not None:
-            self.visualize_consistency()
-        else:
+    def apply(self):
+        if self.consistency_scores_df is  None:
             self.consistency_measurement()
-            self.visualize_consistency()
+        else:
+            pass
+
+
+    def display(self):
+        self.visualize_consistency()
+
+    # def comparison_report(self):
+    #     if self.consistency_scores_df is not None:
+    #         self.visualize_consistency()
+    #     else:
+    #         self.consistency_measurement()
+    #         self.visualize_consistency()
         
 
-    def best_result(self):
-        if self.consistency_scores_df is not None:
-            return self.consistency_scores_df
-        else:
-            self.consistency_measurement()
-            return self.consistency_scores_df
+    # def best_result(self):
+    #     if self.consistency_scores_df is not None:
+    #         return self.consistency_scores_df
+    #     else:
+    #         self.consistency_measurement()
+    #         return self.consistency_scores_df
 
 
     def visualize_consistency(self):
@@ -298,7 +308,7 @@ class FeatureElimination(Comparison):
             if self.mode == MODE.CLASSIFICATION:
                 self.metric = 'Accuracy'
             else:
-                self.metric = 'Mse'
+                self.metric = 'MSE'
         else:
             # Validate the chosen metric
             if metric not in ['Accuracy', 'Precision', 'Recall', 'F1_score', 'AUC', 'MSE', 'MAE']:
@@ -328,21 +338,33 @@ class FeatureElimination(Comparison):
         return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-    def comparison_report(self):
-        """
-        Generates a comparison report of the feature elimination process.
-
-        This method checks if results from feature elimination are already calculated and available.
-        If results are available, it calls `plot_feature_selection_outcomes` to visualize them.
-        Otherwise, it calls `best_result` to perform feature elimination and visualize the outcomes.
-        """
-        if self.df_expl_results is not None:
-            self.plot_feature_selection_outcomes()
+    def apply(self):
+        if self.results_dict_upd is None:
+            self.get_feature_elimination_results()
+            self.add_best_feature_set()
         else:
-            self.best_result()
+            pass
 
 
-    def best_result(self, visualization=False):
+    def display(self):
+        self.plot_feature_selection_outcomes()
+
+
+    # def comparison_report(self):
+    #     """
+    #     Generates a comparison report of the feature elimination process.
+
+    #     This method checks if results from feature elimination are already calculated and available.
+    #     If results are available, it calls `plot_feature_selection_outcomes` to visualize them.
+    #     Otherwise, it calls `best_result` to perform feature elimination and visualize the outcomes.
+    #     """
+    #     if self.df_expl_results is not None:
+    #         self.plot_feature_selection_outcomes()
+    #     else:
+    #         self.best_result()
+
+
+    def best_result(self):
         """
         Determines the best feature set based on the specified metric and optionally visualizes the results.
 
@@ -357,7 +379,7 @@ class FeatureElimination(Comparison):
         indicating the best feature set performance.
         """
 
-        self.visualization = visualization
+        
 
         if self.results_dict_upd:
         
@@ -575,9 +597,9 @@ class FeatureElimination(Comparison):
         results_dict_upd = self.results_dict.copy()
 
         for explnr,results in results_dict_upd.items():
-            print('\033[1m' + explnr.upper() + '\033[0m') if self.visualization else None
+            print('\033[1m' + explnr.upper() + '\033[0m') if self.verbose else None
             results_dict_upd[explnr].append(self.choose_best_feature_set(results[1]))
-            print() if self.visualization else None
+            print() if self.verbose else None
 
         self.results_dict_upd = results_dict_upd
 
@@ -606,7 +628,7 @@ class FeatureElimination(Comparison):
             tdict[metric] = metric_list
         num_eliminated_feats = np.argmax(tdict[self.metric])
 
-        if self.visualization:
+        if self.verbose:
             fig, ax = plt.subplots(figsize=(8, 5))
 
             tdf = pd.DataFrame(tdict)
