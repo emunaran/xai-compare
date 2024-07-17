@@ -105,7 +105,6 @@ import pandas as pd
 import numpy as np
 
 # Local application imports
-from xai_compare import comparison
 from xai_compare.config import MODE, EXPLAINERS, COMPARISON_TECHNIQUES
 
 
@@ -146,7 +145,7 @@ class ComparisonFactory:
 
 
 
-    def create(self, comparison_type: string) -> comparison.Comparison:
+    def create(self, comparison_type: string):
         """
         Creates and returns a comparison object based on the specified type.
 
@@ -167,8 +166,10 @@ class ComparisonFactory:
 
 
         if comparison_type == "feature_selection":
+            # Importing locally to avoid circular dependency
+            from xai_compare.comparison import FeatureElimination
             if self.model:
-                feature_selectionTchn = comparison.FeatureElimination(model = self.model,
+                feature_selectionTchn = FeatureElimination(model = self.model,
                                                          data = self.data,
                                                          target = self.y,
                                                          custom_explainer = self.custom_explainer,
@@ -183,8 +184,10 @@ class ComparisonFactory:
             return feature_selectionTchn
         
         elif comparison_type == "consistency":
+            # Importing locally to avoid circular dependency
+            from xai_compare.comparison import Consistency
             if self.model:
-                consistencyTchn = comparison.Consistency(model = self.model,
+                consistencyTchn = Consistency(model = self.model,
                                                          data = self.data,
                                                          target = self.y,
                                                          custom_explainer = self.custom_explainer,
