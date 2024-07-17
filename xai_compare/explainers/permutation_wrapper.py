@@ -14,8 +14,8 @@ from xai_compare.explainer import Explainer
 from xai_compare.config import MODE
 
 
-class PermutationFeatureImportance(Explainer):
-    __name__ = "permutation"
+class Permutations(Explainer):
+    __name__ = "permutations"
 
     def __init__(self, 
                  model, 
@@ -30,6 +30,7 @@ class PermutationFeatureImportance(Explainer):
         self.num_permutations = num_permutations
         self.random_state = random_state
  
+    
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
         Calculates permutation feature importance for a given model.

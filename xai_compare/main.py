@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Local application imports
-from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.factory import ExplainerFactory
 from xai_compare.explainer_utilities import run_and_collect_explanations
 
 

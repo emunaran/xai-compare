@@ -1,7 +1,8 @@
 # ----------------------------------------------------------------------------------------------------
 # Class Comparison
-# This is the abstract class with explain_global adn explain_local as the abstract methods
-# SHAP, LIME and XGBOOST inherit from this class
+# This abstract class provides a framework for different comparison techniques using various explainers. 
+# Feature importance and Consistency Classes inherit from this Class.
+# It includes methods to generate a comparison report and visualize results.
 # ------------------------------------------------------------------------------------------------------
 from abc import ABC, abstractmethod
 import pandas as pd
@@ -21,7 +22,7 @@ from sklearn.model_selection import train_test_split
 
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
-from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.factory import ExplainerFactory
 from xai_compare.explainer_utilities import run_and_collect_explanations_upd
 
 
@@ -54,10 +55,10 @@ class Comparison(ABC):
 
     Methods:
     -------
-    comparison_report()
+    apply()
         Abstract method to generate a comparison report based on the explainer outputs.
-    best_result()
-        Abstract method to determine the best result from the comparison analysis.
+    display()
+        Abstract method to plot and display the result from the comparison analysis.
     """
 
     def __init__(self,
@@ -94,7 +95,7 @@ class Comparison(ABC):
             A list of initialized explainer classes.
         """
 
-        list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in self.default_explainers]
+        list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:
             list_explainers.extend(custom_explainer)
@@ -177,6 +178,9 @@ class Consistency(Comparison):
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
 
+        # Ensure axes is always iterable
+        axes = np.atleast_1d(axes)
+
         # Loop through each explainer and plot the feature impacts
         for ax, explainer in zip(axes, self.list_explainers):
             mean_impact, std_impact = self.summary[explainer.__name__]
@@ -227,7 +231,7 @@ class Consistency(Comparison):
             for explainer in self.list_explainers:
                 explainer_instance = copy.copy(explainer) 
                 explainer_instance = explainer_instance(self.model, X_train, y_train, mode=self.mode)
-                explainer_values = run_and_collect_explanations_upd(explainer_instance, X_train, verbose=self.verbose)
+                explainer_values = run_and_collect_explanations_upd(explainer_instance, X_test, verbose=self.verbose)
                 results[explainer.__name__].append(explainer_values)
 
             # # Store the explanation values for each explainer
@@ -295,8 +299,10 @@ class FeatureElimination(Comparison):
                  random_state=42, 
                  verbose=True,
                  threshold=0.2,
-                 metric=None):
-        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state) # pass parameters to the parent class
+                 metric=None, 
+                 default_explainers=EXPLAINERS):
+        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state, 
+                         default_explainers=default_explainers) # pass parameters to the parent class
                 
         self.threshold = threshold
         self.results = {}
