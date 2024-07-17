@@ -47,7 +47,7 @@ class ExplainerFactory:
         self.mode = mode
 
 
-    def create_explainer(self, explainer_type: string) -> Explainer:
+    def create(self, explainer_type: string) -> Explainer:
         """
         Creates and returns an explainer object based on the specified type.
 
@@ -126,7 +126,8 @@ class ComparisonFactory:
                  verbose=True,
                  threshold=0.2,
                  metric=None,
-                 n_splits: int = 5):
+                 n_splits: int = 5,
+                 default_explainers=EXPLAINERS):
     
         
         self.model = model
@@ -139,12 +140,13 @@ class ComparisonFactory:
         self.threshold = threshold
         self.metric = metric
         self.n_splits = n_splits
+        self.default_explainers = default_explainers
 
         self.model.fit(self.data, self.y)
 
 
 
-    def create(self, comparison_type: string, explainers: list) -> comparison.Comparison:
+    def create(self, comparison_type: string) -> comparison.Comparison:
         """
         Creates and returns a comparison object based on the specified type.
 
@@ -154,7 +156,6 @@ class ComparisonFactory:
         Parameters:
             comparison_type (str): A string identifier for the explainer type. 
             Valid options are "feature_selection", "consistency".
-            explainers (list):_______________________________
 
         Returns:
             comparison.Comparison: An instance or class of the requested comparison type 
@@ -176,7 +177,7 @@ class ComparisonFactory:
                                                          verbose=self.verbose,
                                                          threshold=self.threshold,
                                                          metric=self.metric,
-                                                         default_explainers = explainers)
+                                                         default_explainers = self.default_explainers)
             else:
                 feature_selectionTchn = comparison.FeatureElimination
             return feature_selectionTchn
@@ -191,7 +192,7 @@ class ComparisonFactory:
                                                          random_state = self.random_state, 
                                                          verbose=self.verbose,
                                                          n_splits = self.n_splits,
-                                                         default_explainers = explainers)
+                                                         default_explainers = self.default_explainers)
             else:
                 consistencyTchn = comparison.Consistency
             return consistencyTchn

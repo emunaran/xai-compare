@@ -26,7 +26,7 @@ class Permutations(Explainer):
                  random_state=None):
         super().__init__(model, X_train, y_train, mode=mode) # pass parameters to the parent class
         
-        self.mode = mode
+        self.mode = MODE.REGRESSION
         self.num_permutations = num_permutations
         self.random_state = random_state
  

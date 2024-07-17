@@ -95,7 +95,7 @@ class Comparison(ABC):
             A list of initialized explainer classes.
         """
 
-        list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in self.default_explainers]
+        list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:
             list_explainers.extend(custom_explainer)
