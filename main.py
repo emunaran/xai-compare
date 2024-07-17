@@ -19,10 +19,6 @@ Steps:
     6. Create and apply comparisons
 """
 
-# import sys
-# sys.path
-# sys.path.append("../")
-# sys.path.append("../../")
 
 # Standard library imports
 from sklearn.ensemble import RandomForestClassifier
