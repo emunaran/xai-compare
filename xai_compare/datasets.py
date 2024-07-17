@@ -1,11 +1,17 @@
+import os
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.datasets import fetch_california_housing
+import pkg_resources
 
 
 # github_data_url = "https://github.com/emunaran/xai-compare/tree/main/data"
 
-data_dir = '../../data'
+def get_data_path(filename):
+    """
+    Get the full path to a data file included in the package.
+    """
+    return pkg_resources.resource_filename('xai_compare', filename)
 
 
 def german_credit():
@@ -39,10 +45,10 @@ def german_credit():
         data, target = xai_compare.datasets.german_credit()
     """
 
-    # read the dataset
-    dataset_dir = f'{data_dir}/german_credit_score/german_credit.csv'
+    dataset_path = get_data_path('data/german_credit_score/german_credit.csv')
 
-    df = pd.read_csv(dataset_dir)
+    # read the dataset
+    df = pd.read_csv(dataset_path)
     
     X = df.iloc[:, 1:]
     y = df.Creditability
@@ -90,9 +96,9 @@ def diabetes():
 
     """
 
-    dataset_dir = f'{data_dir}/diabetes/diabetes.csv'
+    dataset_path = get_data_path('data/diabetes/diabetes.csv')
 
-    df = pd.read_csv(dataset_dir)
+    df = pd.read_csv(dataset_path)
 
     X = df.iloc[:, :-1]
     y = df.Outcome
