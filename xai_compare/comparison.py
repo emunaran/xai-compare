@@ -431,12 +431,11 @@ class FeatureElimination(Comparison):
         Returns:
         - A list containing a list of DataFrames with feature importances and model evaluation results.
         """
-        current_model = self.model
-
+ 
         X_train, X_val, X_test = self.X_train, self.X_val, self.X_test
 
         # clone the model to get unfitted model
-        unfitted_model = self.clone_model(self.model)
+        unfitted_model = self.clone_model()
 
         # Get the list of column names
         columns = self.X_train.columns.tolist()
@@ -448,6 +447,8 @@ class FeatureElimination(Comparison):
         list_el_feats = [] # list of least important features
 
         res_model_eval = []
+
+        current_model = unfitted_model
 
         # Loop until the number of features is reduced to the desired threshold
         while len(columns) > remaining_features:
@@ -496,7 +497,7 @@ class FeatureElimination(Comparison):
         return [res_list, res_model_eval]
 
 
-    def clone_model(self, model):
+    def clone_model(self):
         """
         Clones a model based on its type.
         
@@ -506,11 +507,34 @@ class FeatureElimination(Comparison):
         Returns:
         - cloned_model: The cloned model.
         """
-        if isinstance(model, xgb.XGBModel):
-            cloned_model = xgb.XGBModel(**model.get_params())
+        class XGBClassifierWrapper(xgb.XGBClassifier):
+            def __init__(self, verbose=False, **kwargs):
+                """
+                Initialize the XGBClassifierWrapper with model parameters.
+                """
+                default_params = {}
+                default_params.update(kwargs)
+                super().__init__(**default_params)
+                self.verbose = verbose
+
+            def __call__(self, X):
+                """
+                Make the model callable to be compatible with SHAP.
+                """
+                return self.predict_proba(X)
+
+        # clone the model to get unfitted model
+        if isinstance(self.model, xgb.XGBClassifier):
+            unfitted_model = XGBClassifierWrapper(**self.model.get_params())
+        elif isinstance(self.model, xgb.XGBRegressor):
+            unfitted_model = xgb.XGBRegressor(**self.model.get_params())
         else:
-            cloned_model = clone(model)
-        return cloned_model
+            try:
+                unfitted_model = clone(self.model)
+            except:
+                raise ValueError("Unsupported model type")
+        
+        return unfitted_model
 
 
     def evaluate_models(self, model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
