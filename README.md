@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="xai_compare/docs/images/photo_2024-07-18%2011.58.07.jpeg" alt="Logo" width="200"/>
+    <img src="xai_compare/docs/images/xai-compare_logo.png" alt="Logo" width="200"/>
 </div>
 
 ## Description
