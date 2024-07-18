@@ -47,7 +47,7 @@ class SHAP(Explainer):
         """
         model_type = model_type.lower()
 
-        if "tree" in model_type or "forest" in model_type:
+        if "tree" in model_type or "forest" in model_type or "xgb" in model_type:
             return sh.TreeExplainer
         elif "linear" in model_type:
             return sh.LinearExplainer

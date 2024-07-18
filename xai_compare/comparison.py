@@ -17,7 +17,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import accuracy_score, mean_squared_error, precision_score, recall_score, roc_auc_score, mean_absolute_error, f1_score
 from sklearn.base import clone
 from sklearn.model_selection import train_test_split
-
+import xgboost as xgb
 
 
 # Local application imports
@@ -462,12 +462,36 @@ class FeatureElimination(Comparison):
         Returns:
         - A list containing a list of DataFrames with feature importances and model evaluation results.
         """
-        current_model = self.model
 
         X_train, X_val, X_test = self.X_train, self.X_val, self.X_test
 
+        class XGBClassifierWrapper(xgb.XGBClassifier):
+            def __init__(self, verbose=False, **kwargs):
+                """
+                Initialize the XGBClassifierWrapper with model parameters.
+                """
+                default_params = {}
+                default_params.update(kwargs)
+                super().__init__(**default_params)
+                self.verbose = verbose
+
+            def __call__(self, X):
+                """
+                Make the model callable to be compatible with SHAP.
+                """
+                return self.predict_proba(X)
+
         # clone the model to get unfitted model
-        unfitted_model = clone(self.model)
+        if isinstance(self.model, xgb.XGBClassifier):
+            unfitted_model = XGBClassifierWrapper(**self.model.get_params())
+        elif isinstance(self.model, xgb.XGBRegressor):
+            unfitted_model = xgb.XGBRegressor(**self.model.get_params())
+        else:
+            try:
+                unfitted_model = clone(self.model)
+            except:
+                raise ValueError("Unsupported model type")
+      
 
         # Get the list of column names
         columns = self.X_train.columns.tolist()
@@ -479,6 +503,7 @@ class FeatureElimination(Comparison):
         list_el_feats = [] # list of least important features
 
         res_model_eval = []
+        current_model = unfitted_model
 
         # Loop until the number of features is reduced to the desired threshold
         while len(columns) > remaining_features:
