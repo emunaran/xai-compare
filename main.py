@@ -57,11 +57,14 @@ params = {'model': model,
 comparison_factory = ComparisonFactory(**params)
 
 # Step 6: Create and apply comparisons
+
 # Additional custom comparisons can be defined and added to the comparison_list.
+# my_custom_comparison = create_my_custom_comparison(...)     
+
 comparison_list = [
     comparison_factory.create('feature_selection'),
     comparison_factory.create('consistency')
-    # Add custom comparisons here
+    # my_custom_comparison      # Add custom comparisons here
                     ]
 
 # Apply and display results for each comparison
