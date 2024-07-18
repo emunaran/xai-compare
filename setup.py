@@ -17,19 +17,18 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     install_requires=[
         'jupyter==1.0.0',
         'lime==0.2.0.1',
         'matplotlib==3.9.1',
         'notebook==7.2.1',
-        'numpy==2.0.0',
+        'numpy==1.26.4',
         'pandas==2.2.2',
         'scikit-learn==1.5.1',
         'scipy==1.14.0',
         'seaborn==0.13.2',
-        'shap==0.46.0',
-        'interpret==0.6.2',
+        'shap==0.44.0',
     ],
     package_data={
         'xai_compare': [
