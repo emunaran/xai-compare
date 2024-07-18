@@ -1,3 +1,7 @@
+<div align="center">
+    <img src="xai_compare/docs/images/photo_2024-07-18%2011.58.07.jpeg" alt="Logo" width="200"/>
+</div>
+
 ## Description
 This repository aims to provide tools for comparing different explainability methods, enhancing the interpretation of machine learning models. It currently includes demonstrations of SHAP and LIME, with the intention of expanding to include more interpretability techniques in the future.
 
@@ -8,6 +12,14 @@ This repository aims to provide tools for comparing different explainability met
 ### LIME
 - LIME provides local interpretations of individual predictions by approximating the model's behavior around specific data points.
 - The script initializes a LimeTabularExplainer and explains local predictions of the RandomForestRegressor model using LIME.
+
+## Comparison techniques
+
+## Feature selection
+
+<div align="center">
+    <img src="xai_compare/docs/images/Feature_selection_wf.png" alt="Logo" width="600"/>
+</div>
 
 ## Status
 This repository is under construction. Additional features and interpretability methods will be added in future updates.
