@@ -1,7 +1,8 @@
 # ----------------------------------------------------------------------------------------------------
 # Class Comparison
-# This is the abstract class with explain_global adn explain_local as the abstract methods
-# SHAP, LIME and XGBOOST inherit from this class
+# This abstract class provides a framework for different comparison techniques using various explainers. 
+# Feature importance and Consistency Classes inherit from this Class.
+# It includes methods to generate a comparison report and visualize results.
 # ------------------------------------------------------------------------------------------------------
 from abc import ABC, abstractmethod
 import pandas as pd
@@ -21,7 +22,7 @@ from sklearn.model_selection import train_test_split
 
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
-from xai_compare.explainer_factory import ExplainerFactory
+from xai_compare.factory import ExplainerFactory
 from xai_compare.explainer_utilities import run_and_collect_explanations_upd
 
 
@@ -54,10 +55,10 @@ class Comparison(ABC):
 
     Methods:
     -------
-    comparison_report()
+    apply()
         Abstract method to generate a comparison report based on the explainer outputs.
-    best_result()
-        Abstract method to determine the best result from the comparison analysis.
+    display()
+        Abstract method to plot and display the result from the comparison analysis.
     """
 
     def __init__(self,
@@ -94,7 +95,7 @@ class Comparison(ABC):
             A list of initialized explainer classes.
         """
 
-        list_explainers = [ExplainerFactory().create_explainer(explainer_name) for explainer_name in self.default_explainers]
+        list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:
             list_explainers.extend(custom_explainer)
@@ -102,11 +103,11 @@ class Comparison(ABC):
         return list_explainers
 
     @abstractmethod
-    def comparison_report(self):
+    def apply(self):
         pass
 
     @abstractmethod
-    def best_result(self):
+    def display(self):
         pass
 
 
@@ -138,20 +139,30 @@ class Consistency(Comparison):
         self.n_splits = n_splits
         self.consistency_scores_df = None
 
-    def comparison_report(self):
-        if self.consistency_scores_df is not None:
-            self.visualize_consistency()
-        else:
+    def apply(self):
+        if self.consistency_scores_df is  None:
             self.consistency_measurement()
-            self.visualize_consistency()
+        else:
+            pass
+
+
+    def display(self):
+        self.visualize_consistency()
+
+    # def comparison_report(self):
+    #     if self.consistency_scores_df is not None:
+    #         self.visualize_consistency()
+    #     else:
+    #         self.consistency_measurement()
+    #         self.visualize_consistency()
         
 
-    def best_result(self):
-        if self.consistency_scores_df is not None:
-            return self.consistency_scores_df
-        else:
-            self.consistency_measurement()
-            return self.consistency_scores_df
+    # def best_result(self):
+    #     if self.consistency_scores_df is not None:
+    #         return self.consistency_scores_df
+    #     else:
+    #         self.consistency_measurement()
+    #         return self.consistency_scores_df
 
 
     def visualize_consistency(self):
@@ -166,6 +177,9 @@ class Consistency(Comparison):
 
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
+
+        # Ensure axes is always iterable
+        axes = np.atleast_1d(axes)
 
         # Loop through each explainer and plot the feature impacts
         for ax, explainer in zip(axes, self.list_explainers):
@@ -217,7 +231,7 @@ class Consistency(Comparison):
             for explainer in self.list_explainers:
                 explainer_instance = copy.copy(explainer) 
                 explainer_instance = explainer_instance(self.model, X_train, y_train, mode=self.mode)
-                explainer_values = run_and_collect_explanations_upd(explainer_instance, X_train, verbose=self.verbose)
+                explainer_values = run_and_collect_explanations_upd(explainer_instance, X_test, verbose=self.verbose)
                 results[explainer.__name__].append(explainer_values)
 
             # # Store the explanation values for each explainer
@@ -285,8 +299,10 @@ class FeatureElimination(Comparison):
                  random_state=42, 
                  verbose=True,
                  threshold=0.2,
-                 metric=None):
-        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state) # pass parameters to the parent class
+                 metric=None, 
+                 default_explainers=EXPLAINERS):
+        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state, 
+                         default_explainers=default_explainers) # pass parameters to the parent class
                 
         self.threshold = threshold
         self.results = {}
@@ -298,7 +314,7 @@ class FeatureElimination(Comparison):
             if self.mode == MODE.CLASSIFICATION:
                 self.metric = 'Accuracy'
             else:
-                self.metric = 'Mse'
+                self.metric = 'MSE'
         else:
             # Validate the chosen metric
             if metric not in ['Accuracy', 'Precision', 'Recall', 'F1_score', 'AUC', 'MSE', 'MAE']:
@@ -328,21 +344,33 @@ class FeatureElimination(Comparison):
         return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-    def comparison_report(self):
-        """
-        Generates a comparison report of the feature elimination process.
-
-        This method checks if results from feature elimination are already calculated and available.
-        If results are available, it calls `plot_feature_selection_outcomes` to visualize them.
-        Otherwise, it calls `best_result` to perform feature elimination and visualize the outcomes.
-        """
-        if self.df_expl_results is not None:
-            self.plot_feature_selection_outcomes()
+    def apply(self):
+        if self.results_dict_upd is None:
+            self.get_feature_elimination_results()
+            self.add_best_feature_set()
         else:
-            self.best_result()
+            pass
 
 
-    def best_result(self, visualization=False):
+    def display(self):
+        self.plot_feature_selection_outcomes()
+
+
+    # def comparison_report(self):
+    #     """
+    #     Generates a comparison report of the feature elimination process.
+
+    #     This method checks if results from feature elimination are already calculated and available.
+    #     If results are available, it calls `plot_feature_selection_outcomes` to visualize them.
+    #     Otherwise, it calls `best_result` to perform feature elimination and visualize the outcomes.
+    #     """
+    #     if self.df_expl_results is not None:
+    #         self.plot_feature_selection_outcomes()
+    #     else:
+    #         self.best_result()
+
+
+    def best_result(self):
         """
         Determines the best feature set based on the specified metric and optionally visualizes the results.
 
@@ -357,7 +385,7 @@ class FeatureElimination(Comparison):
         indicating the best feature set performance.
         """
 
-        self.visualization = visualization
+        
 
         if self.results_dict_upd:
         
@@ -575,9 +603,9 @@ class FeatureElimination(Comparison):
         results_dict_upd = self.results_dict.copy()
 
         for explnr,results in results_dict_upd.items():
-            print('\033[1m' + explnr.upper() + '\033[0m') if self.visualization else None
+            print('\033[1m' + explnr.upper() + '\033[0m') if self.verbose else None
             results_dict_upd[explnr].append(self.choose_best_feature_set(results[1]))
-            print() if self.visualization else None
+            print() if self.verbose else None
 
         self.results_dict_upd = results_dict_upd
 
@@ -606,7 +634,7 @@ class FeatureElimination(Comparison):
             tdict[metric] = metric_list
         num_eliminated_feats = np.argmax(tdict[self.metric])
 
-        if self.visualization:
+        if self.verbose:
             fig, ax = plt.subplots(figsize=(8, 5))
 
             tdf = pd.DataFrame(tdict)

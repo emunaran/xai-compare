@@ -1,0 +1,70 @@
+"""
+Main File for Testing the XAI Comparison Package
+
+This script demonstrates the setup and usage of the XAI Comparison package,
+using a RandomForestClassifier on the German credit dataset.
+
+Imports:
+    - RandomForestClassifier from sklearn.ensemble
+    - ComparisonFactory from xai_compare.factory
+    - german_credit dataset from xai_compare.datasets
+    - MODE from xai_compare.config
+
+Steps:
+    1. Define the model
+    2. Load the dataset
+    3. Set the mode (classification/regression)
+    4. Configure parameters
+    5. Initialize the ComparisonFactory
+    6. Create and apply comparisons
+"""
+
+
+# Standard library imports
+from sklearn.ensemble import RandomForestClassifier
+
+# Local application imports
+from xai_compare.factory import ComparisonFactory
+from xai_compare.datasets import german_credit
+from xai_compare.config import MODE
+
+
+# Step 1: Define the model
+model = RandomForestClassifier(max_depth=4, n_estimators=100, random_state=42)
+
+# Step 2: Load the dataset
+X, y = german_credit()
+
+# Step 3: Set the mode
+mode = MODE.CLASSIFICATION
+
+# Step 4: Configure parameters
+params = {'model': model,
+          'data': X,
+          'target': y,
+          'custom_explainer': None,
+          'verbose': False,
+          'mode': mode,
+          # 'default_explainers': ['shap', 'lime', 'permutations']  # Uncomment to specify explainers
+          }
+
+# Option to create a custom explainer (uncomment and define your custom explainer)
+# my_custom_explainer = create_my_custom_explainer(...)
+
+
+# Step 5: Initialize the ComparisonFactory
+# The ComparisonFactory is responsible for creating comparison objects based on the provided parameters.
+comparison_factory = ComparisonFactory(**params)
+
+# Step 6: Create and apply comparisons
+# Additional custom comparisons can be defined and added to the comparison_list.
+comparison_list = [
+    comparison_factory.create('feature_selection'),
+    comparison_factory.create('consistency')
+    # Add custom comparisons here
+                    ]
+
+# Apply and display results for each comparison
+for comparison in comparison_list:
+    comparison.apply()
+    comparison.display()

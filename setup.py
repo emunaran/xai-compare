@@ -11,6 +11,7 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/emunaran/xai-compare.git',
     packages=find_packages(),
+    include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 3',
         'License :: OSI Approved :: MIT License',
@@ -30,4 +31,12 @@ setup(
         'shap==0.46.0',
         'interpret==0.6.2',
     ],
+    package_data={
+        'xai_compare': [
+            'data/diabetes/diabetes.csv',
+            'data/fico/train.csv',
+            'data/fico/test.csv',
+            'data/german_credit_score/german_credit.csv'
+        ],
+    },
 )

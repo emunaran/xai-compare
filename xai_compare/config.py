@@ -9,3 +9,5 @@ class MODE:
 
 
 EXPLAINERS = ["shap", "lime", "permutations"]  # List of available explainers
+
+COMPARISON_TECHNIQUES =["feature_selection", "consistency"]
