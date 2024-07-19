@@ -1,9 +1,3 @@
-# ----------------------------------------------------------------------------------------------------
-# Class Comparison
-# This abstract class provides a framework for different comparison techniques using various explainers. 
-# Feature importance and Consistency Classes inherit from this Class.
-# It includes methods to generate a comparison report and visualize results.
-# ------------------------------------------------------------------------------------------------------
 from abc import ABC, abstractmethod
 import pandas as pd
 from typing import Union
@@ -17,7 +11,7 @@ from sklearn.model_selection import KFold, StratifiedKFold
 from sklearn.metrics import accuracy_score, mean_squared_error, precision_score, recall_score, roc_auc_score, mean_absolute_error, f1_score
 from sklearn.base import clone
 from sklearn.model_selection import train_test_split
-
+import xgboost as xgb
 
 
 # Local application imports
@@ -45,7 +39,7 @@ class Comparison(ABC):
         Custom explainer instances to be added to the default explainers,
         should be made with the framework from explainer.py
     mode : str, default MODE.REGRESSION
-        The mode of operation from confrg.py
+        The mode of operation from config.py
     random_state : int, default 42
         Seed used by the random number generator for reproducibility.
     verbose : bool, default True
@@ -356,20 +350,6 @@ class FeatureElimination(Comparison):
         self.plot_feature_selection_outcomes()
 
 
-    # def comparison_report(self):
-    #     """
-    #     Generates a comparison report of the feature elimination process.
-
-    #     This method checks if results from feature elimination are already calculated and available.
-    #     If results are available, it calls `plot_feature_selection_outcomes` to visualize them.
-    #     Otherwise, it calls `best_result` to perform feature elimination and visualize the outcomes.
-    #     """
-    #     if self.df_expl_results is not None:
-    #         self.plot_feature_selection_outcomes()
-    #     else:
-    #         self.best_result()
-
-
     def best_result(self):
         """
         Determines the best feature set based on the specified metric and optionally visualizes the results.
@@ -384,30 +364,23 @@ class FeatureElimination(Comparison):
         The maximum value of the specified evaluation metric across all explainer results,
         indicating the best feature set performance.
         """
-
-        
-
         if self.results_dict_upd:
-        
             df_expl_results = round(list(self.results_dict_upd.values())[0][1][0]['test'], 4)
             for explnr, results in self.results_dict_upd.items():
                 if df_expl_results is None:
                     df_expl_results = round(results[1][results[2]]['test'], 4)
                 else:
-                    df_expl_results = pd.concat([df_expl_results,(round(results[1][results[2]]['test'], 4))], axis=1)
+                    df_expl_results = pd.concat([df_expl_results, (round(results[1][results[2]]['test'], 4))], axis=1)
 
             df_expl_results.columns = ['baseline_features_set'] + list(self.results_dict_upd.keys())
 
             self.df_expl_results = df_expl_results
-        
         else:
             self.get_feature_elimination_results()
             self.add_best_feature_set()
             self.best_result()
 
         return self.df_expl_results.loc[[self.metric]].max(axis=1)
-
-        
 
 
     def get_feature_elimination_results(self):
@@ -429,16 +402,12 @@ class FeatureElimination(Comparison):
         Returns:
         - results_dict (dict): A dictionary containing the results from each explainer.
         """
-
-
         results_dict = {}
-
         for explainer in tqdm(self.list_explainers, desc="Explainers"):
             results_dict[explainer.__name__] = self.evaluate_explainer(explainer)
 
         self.results_dict = results_dict
-        
-    
+
 
     def evaluate_explainer(self, explainer): 
         """
@@ -462,23 +431,24 @@ class FeatureElimination(Comparison):
         Returns:
         - A list containing a list of DataFrames with feature importances and model evaluation results.
         """
-        current_model = self.model
-
+ 
         X_train, X_val, X_test = self.X_train, self.X_val, self.X_test
 
         # clone the model to get unfitted model
-        unfitted_model = clone(self.model)
+        unfitted_model = self.clone_model()
 
         # Get the list of column names
         columns = self.X_train.columns.tolist()
         n = len(columns)
         remaining_features = n * self.threshold
 
-        # Initialize variables to store resuts
+        # Initialize variables to store results
         res_list = [] # list of feature importance
         list_el_feats = [] # list of least important features
 
         res_model_eval = []
+
+        current_model = unfitted_model
 
         # Loop until the number of features is reduced to the desired threshold
         while len(columns) > remaining_features:
@@ -491,24 +461,21 @@ class FeatureElimination(Comparison):
             res_model_eval.append(current_model_results)
         
             # Get explainer values
-            # explainer_factory = ExplainerFactory(current_model, X_train=X_train, y_train=y_train)
-       
             explainer_instance = copy.copy(explainer) 
             explainer_instance = explainer_instance(current_model, X_train, self.y_train)
             current_importance = run_and_collect_explanations_upd(explainer_instance, X_train, verbose=self.verbose)
 
             # Find the least important feature
-            # - apply absolute value on the global explanation results to get the feature importance for each XAI method.
+            # Apply absolute value on the global explanation results to get the feature importance for each XAI method.
             feature_importances = abs(current_importance)
 
-            # - sort the list to have the order of the least to the most important features.
+            # Sort the list to have the order of the least to the most important features.
             sorted_feature_importances = feature_importances.sort_values(by=current_importance.columns[0], ascending=True)
             least_important_feature = sorted_feature_importances.index[0]
 
             # Log progress
             if self.verbose:
                 print(f'Iteration: {n - len(X_train.columns) + 1}, Removed: {least_important_feature}')
-
 
             # results = pd.concat([current_importance, feature_importances_df], axis=1)
             results = sorted_feature_importances
@@ -528,7 +495,47 @@ class FeatureElimination(Comparison):
 
         # return a list of DataFrames with model evaluation results
         return [res_list, res_model_eval]
-    
+
+
+    def clone_model(self):
+        """
+        Clones a model based on its type.
+        
+        Parameters:
+        - model: The model to be cloned.
+
+        Returns:
+        - cloned_model: The cloned model.
+        """
+        class XGBClassifierWrapper(xgb.XGBClassifier):
+            def __init__(self, verbose=False, **kwargs):
+                """
+                Initialize the XGBClassifierWrapper with model parameters.
+                """
+                default_params = {}
+                default_params.update(kwargs)
+                super().__init__(**default_params)
+                self.verbose = verbose
+
+            def __call__(self, X):
+                """
+                Make the model callable to be compatible with SHAP.
+                """
+                return self.predict_proba(X)
+
+        # clone the model to get unfitted model
+        if isinstance(self.model, xgb.XGBClassifier):
+            unfitted_model = XGBClassifierWrapper(**self.model.get_params())
+        elif isinstance(self.model, xgb.XGBRegressor):
+            unfitted_model = xgb.XGBRegressor(**self.model.get_params())
+        else:
+            try:
+                unfitted_model = clone(self.model)
+            except:
+                raise ValueError("Unsupported model type")
+        
+        return unfitted_model
+
 
     def evaluate_models(self, model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
 
@@ -548,7 +555,6 @@ class FeatureElimination(Comparison):
         The function calculates accuracy, precision, recall, and F1 scores for classification mode,
         and mean squared error and mean absolute error for regression mode.
         """
-
         res_dict, res_df = {}, None
         y_pred_train = model.predict(X_train)
         y_pred_val = model.predict(X_val)
@@ -602,10 +608,12 @@ class FeatureElimination(Comparison):
 
         results_dict_upd = self.results_dict.copy()
 
-        for explnr,results in results_dict_upd.items():
-            print('\033[1m' + explnr.upper() + '\033[0m') if self.verbose else None
+        for explnr, results in results_dict_upd.items():
+            if self.verbose:
+                print('\033[1m' + explnr.upper() + '\033[0m')
             results_dict_upd[explnr].append(self.choose_best_feature_set(results[1]))
-            print() if self.verbose else None
+            if self.verbose:
+                print()
 
         self.results_dict_upd = results_dict_upd
 
@@ -697,14 +705,11 @@ class FeatureElimination(Comparison):
             if df_expl_results is None:
                 df_expl_results = round(results[1][results[2]]['test'], 4)
             else:
-                df_expl_results = pd.concat([df_expl_results,(round(results[1][results[2]]['test'], 4))], axis=1)
+                df_expl_results = pd.concat([df_expl_results, (round(results[1][results[2]]['test'], 4))], axis=1)
 
         df_expl_results.columns = ['baseline_features_set'] + list(self.results_dict_upd.keys())
 
         self.df_expl_results = df_expl_results
-
-        # pd.plotting.table(ax, df_expl_results, loc='upper center', colWidths=[0.15] * len(df_expl_results.columns), fontsize=14)
-        
 
         # Creating the table
         table = ax.table(cellText=df_expl_results.values, rowLabels=df_expl_results.index, colLabels=df_expl_results.columns, loc='center', cellLoc='center', fontsize=14)
