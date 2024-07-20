@@ -1,23 +1,22 @@
 from abc import ABC, abstractmethod
-import pandas as pd
-from typing import Union
-import numpy as np
 import copy
-
+import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-
-from sklearn.model_selection import KFold, StratifiedKFold
-from sklearn.metrics import accuracy_score, mean_squared_error, precision_score, recall_score, roc_auc_score, mean_absolute_error, f1_score
+from typing import Union
 from sklearn.base import clone
-from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    accuracy_score, mean_squared_error, precision_score, recall_score,
+    roc_auc_score, mean_absolute_error, f1_score
+)
+from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 import xgboost as xgb
-
 
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
 from xai_compare.factory import ExplainerFactory
-from xai_compare.explainer_utilities import run_and_collect_explanations_upd
+from xai_compare.explainer_utilities import run_and_collect_explanations
 
 
 class Comparison(ABC):
@@ -59,7 +58,7 @@ class Comparison(ABC):
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 custom_explainer = None,
+                 custom_explainer=None,
                  mode: str = MODE.REGRESSION, 
                  random_state=42, 
                  verbose=True,
@@ -67,12 +66,11 @@ class Comparison(ABC):
         self.model = model
         self.data = data
         self.y = target
-        self.mode: str = mode
+        self.mode = mode
         self.random_state = random_state
         self.verbose = verbose
         self.default_explainers = default_explainers
         self.list_explainers = self.create_list_explainers(custom_explainer)
-
 
     def create_list_explainers(self, custom_explainer):
         """
@@ -88,7 +86,6 @@ class Comparison(ABC):
         list
             A list of initialized explainer classes.
         """
-
         list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:
@@ -105,7 +102,6 @@ class Comparison(ABC):
         pass
 
 
-
 class Consistency(Comparison):
     """
     A class to evaluate consistency of different explainers on a specified model.
@@ -113,7 +109,7 @@ class Consistency(Comparison):
     Attributes:
     - model (Model): The machine learning model to be evaluated.
     - data: data
-    - targer: labels.
+    - target: labels.
     - verbose (bool): If True, prints additional information during the function's execution.
     """
 
@@ -121,54 +117,31 @@ class Consistency(Comparison):
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 custom_explainer = None,
+                 custom_explainer=None,
                  mode: str = MODE.REGRESSION, 
                  random_state=42, 
                  verbose=False,
                  n_splits: int = 5, 
                  default_explainers=EXPLAINERS):
-        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state, \
-                         default_explainers=default_explainers) # pass parameters to the parent class
-                
+        super().__init__(model, data, target, custom_explainer, mode=mode, random_state=random_state, verbose=verbose, default_explainers=default_explainers)
         self.n_splits = n_splits
         self.consistency_scores_df = None
 
     def apply(self):
-        if self.consistency_scores_df is  None:
+        if self.consistency_scores_df is None:
             self.consistency_measurement()
         else:
             pass
 
-
     def display(self):
         self.visualize_consistency()
-
-    # def comparison_report(self):
-    #     if self.consistency_scores_df is not None:
-    #         self.visualize_consistency()
-    #     else:
-    #         self.consistency_measurement()
-    #         self.visualize_consistency()
-        
-
-    # def best_result(self):
-    #     if self.consistency_scores_df is not None:
-    #         return self.consistency_scores_df
-    #     else:
-    #         self.consistency_measurement()
-    #         return self.consistency_scores_df
+        print(self.consistency_scores_df)  
 
 
     def visualize_consistency(self):
         """
         Visualizes the mean and standard deviation of feature impacts for different explainers.
-        
-        Parameters:
-            explainers (list): List of explainer names.
-            feature_names (list): List of feature names.
-            summary (dict): Dictionary containing mean and standard deviation of feature impacts.
         """
-
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
 
@@ -185,31 +158,21 @@ class Consistency(Comparison):
         plt.tight_layout()
         plt.show()
 
-
     def consistency_measurement(self, stratified_folds=False):
         """
         Measures the consistency of feature explanations across different folds.
         
         Parameters:
-            X (DataFrame): Feature matrix.
-            y (Series): Target variable.
-            model (sklearn estimator): Machine learning model.
-            n_splits (int): Number of splits for cross-validation.
-            explainers (list): List of explainer names to use.
-            verbose (bool): Verbosity flag.
             stratified_folds (bool): Whether to use StratifiedKFold instead of KFold.
         
         Returns:
             DataFrame: DataFrame containing summary statistics of feature impact standard deviations.
         """
-
         if stratified_folds:
-            folds = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=42)
+            folds = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
         else:
-            folds = KFold(n_splits=self.n_splits, shuffle=True, random_state=42)
+            folds = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
 
-        # If no explainers are provided, use all available explainers
-        # chosen_explainers = explainers if explainers is not None else available_explainers
         results = {explainer.__name__: [] for explainer in self.list_explainers}
 
         # Train the model on the full dataset first
@@ -220,18 +183,14 @@ class Consistency(Comparison):
             X_train, X_test = self.data.iloc[train_index], self.data.iloc[test_index]
             y_train, y_test = self.y.iloc[train_index], self.y.iloc[test_index]
             
-            # # Create explainer factory and collect explanations
+            # Create explainer factory and collect explanations
 
             for explainer in self.list_explainers:
-                explainer_instance = copy.copy(explainer) 
+                explainer_instance = copy.copy(explainer)
                 explainer_instance = explainer_instance(self.model, X_train, y_train, mode=self.mode)
-                explainer_values = run_and_collect_explanations_upd(explainer_instance, X_test, verbose=self.verbose)
+                explainer_values = run_and_collect_explanations(explainer_instance, X_test, verbose=self.verbose)
                 results[explainer.__name__].append(explainer_values)
-
-            # # Store the explanation values for each explainer
-            # for explainer in chosen_explainers:
-            #     explainer_values = explanations[explainer.upper() + " Value"]
-            #     results[explainer].append(explainer_values)
+        self.results = results
 
         # Calculate mean and standard deviation of feature impacts for each explainer
         summary = {}
@@ -242,9 +201,6 @@ class Consistency(Comparison):
             summary[explainer.__name__] = (mean_impact, std_impact)
 
         self.summary = summary
-
-        # Visualize the consistency of feature impacts
-        # visualize_consistency(chosen_explainers, feature_names, summary)
 
         # Create a DataFrame summarizing the standard deviation statistics for each explainer
         consistency_scores = {}
@@ -265,9 +221,7 @@ class Consistency(Comparison):
                 print(f"No data available for explainer: {key}")
 
         consistency_scores_df = pd.DataFrame(consistency_scores).T
-        
         self.consistency_scores_df = consistency_scores_df
-
 
 
 class FeatureElimination(Comparison):
@@ -277,7 +231,7 @@ class FeatureElimination(Comparison):
     Attributes:
     - model (Model): The machine learning model to be evaluated.
     - data: data
-    - targer: labels.
+    - target: labels.
     - mode (str): The mode of operation for the explainers ('classification', 'regression').
     - threshold (float): The threshold for feature importance below which features are considered for elimination.
     - random_state (int): A seed value to ensure reproducibility.
@@ -288,16 +242,14 @@ class FeatureElimination(Comparison):
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 custom_explainer = None,
+                 custom_explainer=None,
                  mode: str = MODE.REGRESSION, 
                  random_state=42, 
                  verbose=True,
                  threshold=0.2,
                  metric=None, 
                  default_explainers=EXPLAINERS):
-        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state, 
-                         default_explainers=default_explainers) # pass parameters to the parent class
-                
+        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state, default_explainers=default_explainers)
         self.threshold = threshold
         self.results = {}
         self.df_expl_results = None
@@ -314,7 +266,6 @@ class FeatureElimination(Comparison):
             if metric not in ['Accuracy', 'Precision', 'Recall', 'F1_score', 'AUC', 'MSE', 'MAE']:
                 raise ValueError(f"Invalid metric '{metric}'. Valid options are 'Accuracy', 'Precision', 'Recall', 'F1_score', 'AUC', 'MSE', 'MAE'.")
             self.metric = metric
-
 
     def train_test_val(self):
         """
@@ -337,7 +288,6 @@ class FeatureElimination(Comparison):
         X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.4, random_state=self.random_state)  
         return X_train, y_train, X_val, y_val, X_test, y_test
 
-
     def apply(self):
         if self.results_dict_upd is None:
             self.get_feature_elimination_results()
@@ -345,19 +295,12 @@ class FeatureElimination(Comparison):
         else:
             pass
 
-
     def display(self):
         self.plot_feature_selection_outcomes()
-
 
     def best_result(self):
         """
         Determines the best feature set based on the specified metric and optionally visualizes the results.
-
-        Parameters:
-        ----------
-        visualization : bool, optional
-            If True, enables the visualization of feature elimination outcomes.
 
         Returns:
         -------
@@ -373,7 +316,6 @@ class FeatureElimination(Comparison):
                     df_expl_results = pd.concat([df_expl_results, (round(results[1][results[2]]['test'], 4))], axis=1)
 
             df_expl_results.columns = ['baseline_features_set'] + list(self.results_dict_upd.keys())
-
             self.df_expl_results = df_expl_results
         else:
             self.get_feature_elimination_results()
@@ -382,7 +324,6 @@ class FeatureElimination(Comparison):
 
         return self.df_expl_results.loc[[self.metric]].max(axis=1)
 
-
     def get_feature_elimination_results(self):
         """
         Evaluates different feature elimination strategies provided by the list of explainers on a specified model.
@@ -390,24 +331,13 @@ class FeatureElimination(Comparison):
         Each explainer is used to assess the importance of features, and based on that, evaluate the model's performance 
         with progressively eliminated features.
 
-        Parameters:
-        - list_explainers (list): A list of explainer instances or identifiers used to evaluate feature importance.
-        - model: The machine learning model to be evaluated.
-        - X_train, y_train, X_val, y_val, X_test, y_test: Training, validation, and testing datasets.
-        - mode (str): The mode of operation for the explainers (e.g., 'classification', 'regression').
-        - threshold (float, optional): The threshold for feature importance below which features are considered for elimination. Defaults to 0.2.
-        - random_state (int, optional): A seed value to ensure reproducibility. Defaults to None.
-        - verbose (bool, optional): If True, prints additional information during the function's execution. Defaults to True.
-
         Returns:
         - results_dict (dict): A dictionary containing the results from each explainer.
         """
         results_dict = {}
         for explainer in tqdm(self.list_explainers, desc="Explainers"):
             results_dict[explainer.__name__] = self.evaluate_explainer(explainer)
-
         self.results_dict = results_dict
-
 
     def evaluate_explainer(self, explainer): 
         """
@@ -417,24 +347,12 @@ class FeatureElimination(Comparison):
         This function iteratively eliminates the least important features as determined by the specified explainer
         until the number of features is reduced to the desired threshold.
 
-        Parameters:
-        - model: Trained model to be evaluated.
-        - X_train, y_train: Training data and labels.
-        - X_val, y_val: Validation data and labels.
-        - X_test, y_test: Test data and labels.
-        - explainer (str): The type of explainer to use for feature importance evaluation.
-        - mode (str): The mode of the operation, typically 'classification' or 'regression'.
-        - threshold (float): Proportion of features to retain based on their importance.
-        - random_state (int, optional): Seed used by random number generators for reproducibility.
-        - verbose (bool, optional): If True, prints detailed progress information.
-
         Returns:
         - A list containing a list of DataFrames with feature importances and model evaluation results.
         """
- 
         X_train, X_val, X_test = self.X_train, self.X_val, self.X_test
 
-        # clone the model to get unfitted model
+        # Clone the model to get unfitted model
         unfitted_model = self.clone_model()
 
         # Get the list of column names
@@ -452,7 +370,6 @@ class FeatureElimination(Comparison):
 
         # Loop until the number of features is reduced to the desired threshold
         while len(columns) > remaining_features:
-            
             current_model.fit(X_train, self.y_train)
 
             # evaluate the model
@@ -463,7 +380,7 @@ class FeatureElimination(Comparison):
             # Get explainer values
             explainer_instance = copy.copy(explainer) 
             explainer_instance = explainer_instance(current_model, X_train, self.y_train)
-            current_importance = run_and_collect_explanations_upd(explainer_instance, X_train, verbose=self.verbose)
+            current_importance = run_and_collect_explanations(explainer_instance, X_train, verbose=self.verbose)
 
             # Find the least important feature
             # Apply absolute value on the global explanation results to get the feature importance for each XAI method.
@@ -496,14 +413,10 @@ class FeatureElimination(Comparison):
         # return a list of DataFrames with model evaluation results
         return [res_list, res_model_eval]
 
-
     def clone_model(self):
         """
         Clones a model based on its type.
         
-        Parameters:
-        - model: The model to be cloned.
-
         Returns:
         - cloned_model: The cloned model.
         """
@@ -536,9 +449,7 @@ class FeatureElimination(Comparison):
         
         return unfitted_model
 
-
     def evaluate_models(self, model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
-
         """
         Evaluates a model's performance metrics on training, validation, and test datasets.
         
@@ -593,12 +504,7 @@ class FeatureElimination(Comparison):
     def add_best_feature_set(self):
         """
         Appends the best feature set analysis results to each entry in the results dictionary based on a specified metric.
-        
-        Parameters:
-        - results_dict (dict): Dictionary containing results for different explainers or methods.
-        - mode (str): Operating mode, which determines the main metric ('classification' for accuracy, 'regression' for MSE).
-        - visualization (bool, optional): Whether to visualize the results during the process.
-        
+              
         Returns:
         - results_dict_upd (dict): Updated results dictionary with best feature set analysis appended.
         
@@ -624,12 +530,6 @@ class FeatureElimination(Comparison):
         
         This function calculates the performance metrics for different numbers of features removed and identifies
         the optimal number of features by finding the highest metric value.
-
-        Parameters:
-        - model_ev_results (list): A list of DataFrame objects containing model evaluation metrics.
-        - main_metric (str): The metric name to evaluate for the best feature set (e.g., 'accuracy', 'mse').
-        - data_type (str, optional): Specifies the type of data ('train', 'val', or 'test') on which metrics are based.
-        - visualization (bool, optional): If True, generates a plot to visualize the metrics across different feature sets.
 
         Returns:
         - num_eliminated_feats (int): The number of features suggested to be removed for optimal performance.
@@ -672,10 +572,6 @@ class FeatureElimination(Comparison):
     def plot_feature_selection_outcomes(self):
         """
         This function generate visualization of performance metrics for selected feature sets evaluated on the test set.
-
-        Parameters:
-        - results_dict_upd (dict): A dictionary where each key is an explainer name, and the value is
-        a list containing a DataFrame of feature importances and model performance metrics for each feature set.
 
         This function creates two sets of plots: bar charts for feature importance and a table of metrics.
         """

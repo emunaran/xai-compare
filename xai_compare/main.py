@@ -26,7 +26,7 @@ from sklearn.ensemble import RandomForestClassifier
 # Local application imports
 from xai_compare.factory import ComparisonFactory
 from xai_compare.datasets import german_credit
-from xai_compare.config import MODE
+from xai_compare.config import MODE, COMPARISON_TECHNIQUES
 
 
 # Step 1: Define the model
@@ -58,16 +58,7 @@ comparison_factory = ComparisonFactory(**params)
 
 # Step 6: Create and apply comparisons
 
-# Additional custom comparisons can be defined and added to the comparison_list.
-# my_custom_comparison = create_my_custom_comparison(...)     
-
-comparison_list = [
-    comparison_factory.create('feature_selection'),
-    comparison_factory.create('consistency')
-    # my_custom_comparison      # Add custom comparisons here
-                    ]
-
-# Apply and display results for each comparison
-for comparison in comparison_list:
+for technique in COMPARISON_TECHNIQUES:
+    comparison = comparison_factory.create(technique)
     comparison.apply()
     comparison.display()

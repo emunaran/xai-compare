@@ -29,6 +29,7 @@ setup(
         'scipy==1.14.0',
         'seaborn==0.13.2',
         'shap==0.44.0',
+        'tqdm==4.66.4',
     ],
     package_data={
         'xai_compare': [

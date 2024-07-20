@@ -23,18 +23,7 @@ class SHAP(Explainer):
         :return: DataFrame of average SHAP values for each feature.
         """
         shap_values = self.explain_local(x_data)
-
-        #if isinstance(self.model, RandomForestClassifier):
-        #    global_exp = pd.DataFrame(explainer.shap_values(x_data).mean(axis=1))
-        #    feature_importance = pd.DataFrame(abs(explainer.shap_values(x_data)).mean(axis=1))
-        #    print("Global Explanation:\n")
-        #    print(global_exp)
-        #    print("Feature Importance:\n")
-        #    print(feature_importance)
-        #elif isinstance(self.model, RandomForestRegressor):
-
         shap_mean = np.mean(shap_values, axis=0)
-
         return pd.DataFrame(shap_mean, index=x_data.columns, columns=['SHAP Value'])
 
 

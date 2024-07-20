@@ -5,8 +5,8 @@
 # ------------------------------------------------------------------------------------------------------
 from abc import ABC, abstractmethod
 import pandas as pd
-from typing import Union
 import numpy as np
+from typing import Union
 
 # Local application imports
 from xai_compare.config import MODE
