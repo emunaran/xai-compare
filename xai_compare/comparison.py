@@ -223,7 +223,7 @@ class Consistency(Comparison):
                 print(f"No data available for explainer: {key}")
 
         consistency_scores_df = pd.DataFrame(consistency_scores).T
-        self.consistency_scores_df = consistency_scores_df
+        self.scores = consistency_scores_df
 
 
 class FeatureElimination(Comparison):
