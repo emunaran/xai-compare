@@ -167,9 +167,9 @@ class ComparisonFactory:
 
         if comparison_type == "feature_selection":
             # Importing locally to avoid circular dependency
-            from xai_compare.comparison import FeatureElimination
+            from xai_compare.comparison import FeatureSelection
             if self.model:
-                feature_selectionTchn = FeatureElimination(model = self.model,
+                feature_selectionTchn = FeatureSelection(model = self.model,
                                                          data = self.data,
                                                          target = self.y,
                                                          custom_explainer = self.custom_explainer,
@@ -180,7 +180,7 @@ class ComparisonFactory:
                                                          metric=self.metric,
                                                          default_explainers = self.default_explainers)
             else:
-                feature_selectionTchn = FeatureElimination
+                feature_selectionTchn = FeatureSelection
             return feature_selectionTchn
         
         elif comparison_type == "consistency":
