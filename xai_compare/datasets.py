@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.datasets import fetch_california_housing

@@ -12,7 +12,6 @@ import pandas as pd
 from xai_compare.explainer import Explainer
 from xai_compare.config import MODE
 
-# Handle it later
 import warnings
 warnings.filterwarnings("ignore", category=UserWarning, message=".*X does not have valid feature names.*")
 

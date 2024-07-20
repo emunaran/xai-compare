@@ -105,7 +105,7 @@ import pandas as pd
 import numpy as np
 
 # Local application imports
-from xai_compare.config import MODE, EXPLAINERS, COMPARISON_TECHNIQUES
+from xai_compare.config import MODE, EXPLAINERS
 
 
 class ComparisonFactory:
@@ -180,7 +180,7 @@ class ComparisonFactory:
                                                          metric=self.metric,
                                                          default_explainers = self.default_explainers)
             else:
-                feature_selectionTchn = comparison.FeatureElimination
+                feature_selectionTchn = FeatureElimination
             return feature_selectionTchn
         
         elif comparison_type == "consistency":
@@ -197,7 +197,7 @@ class ComparisonFactory:
                                                          n_splits = self.n_splits,
                                                          default_explainers = self.default_explainers)
             else:
-                consistencyTchn = comparison.Consistency
+                consistencyTchn = Consistency
             return consistencyTchn
 
 

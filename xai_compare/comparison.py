@@ -16,7 +16,7 @@ import xgboost as xgb
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
 from xai_compare.factory import ExplainerFactory
-from xai_compare.explainer_utilities import run_and_collect_explanations_upd
+from xai_compare.explainer_utilities import run_and_collect_explanations
 
 
 class Comparison(ABC):
@@ -135,31 +135,12 @@ class Consistency(Comparison):
 
     def display(self):
         self.visualize_consistency()
-
-    # def comparison_report(self):
-    #     if self.consistency_scores_df is not None:
-    #         self.visualize_consistency()
-    #     else:
-    #         self.consistency_measurement()
-    #         self.visualize_consistency()
-        
-
-    # def best_result(self):
-    #     if self.consistency_scores_df is not None:
-    #         return self.consistency_scores_df
-    #     else:
-    #         self.consistency_measurement()
-    #         return self.consistency_scores_df
+        print(self.consistency_scores_df)  
 
 
     def visualize_consistency(self):
         """
         Visualizes the mean and standard deviation of feature impacts for different explainers.
-        
-        Parameters:
-            explainers (list): List of explainer names.
-            feature_names (list): List of feature names.
-            summary (dict): Dictionary containing mean and standard deviation of feature impacts.
         """
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
@@ -182,12 +163,6 @@ class Consistency(Comparison):
         Measures the consistency of feature explanations across different folds.
         
         Parameters:
-            X (DataFrame): Feature matrix.
-            y (Series): Target variable.
-            model (sklearn estimator): Machine learning model.
-            n_splits (int): Number of splits for cross-validation.
-            explainers (list): List of explainer names to use.
-            verbose (bool): Verbosity flag.
             stratified_folds (bool): Whether to use StratifiedKFold instead of KFold.
         
         Returns:
@@ -208,18 +183,14 @@ class Consistency(Comparison):
             X_train, X_test = self.data.iloc[train_index], self.data.iloc[test_index]
             y_train, y_test = self.y.iloc[train_index], self.y.iloc[test_index]
             
-            # # Create explainer factory and collect explanations
+            # Create explainer factory and collect explanations
 
             for explainer in self.list_explainers:
                 explainer_instance = copy.copy(explainer)
                 explainer_instance = explainer_instance(self.model, X_train, y_train, mode=self.mode)
-                explainer_values = run_and_collect_explanations_upd(explainer_instance, X_test, verbose=self.verbose)
+                explainer_values = run_and_collect_explanations(explainer_instance, X_test, verbose=self.verbose)
                 results[explainer.__name__].append(explainer_values)
-
-            # # Store the explanation values for each explainer
-            # for explainer in chosen_explainers:
-            #     explainer_values = explanations[explainer.upper() + " Value"]
-            #     results[explainer].append(explainer_values)
+        self.results = results
 
         # Calculate mean and standard deviation of feature impacts for each explainer
         summary = {}
@@ -230,9 +201,6 @@ class Consistency(Comparison):
             summary[explainer.__name__] = (mean_impact, std_impact)
 
         self.summary = summary
-
-        # Visualize the consistency of feature impacts
-        # visualize_consistency(chosen_explainers, feature_names, summary)
 
         # Create a DataFrame summarizing the standard deviation statistics for each explainer
         consistency_scores = {}
@@ -384,7 +352,7 @@ class FeatureElimination(Comparison):
         """
         X_train, X_val, X_test = self.X_train, self.X_val, self.X_test
 
-        # clone the model to get unfitted model
+        # Clone the model to get unfitted model
         unfitted_model = self.clone_model()
 
         # Get the list of column names
@@ -412,7 +380,7 @@ class FeatureElimination(Comparison):
             # Get explainer values
             explainer_instance = copy.copy(explainer) 
             explainer_instance = explainer_instance(current_model, X_train, self.y_train)
-            current_importance = run_and_collect_explanations_upd(explainer_instance, X_train, verbose=self.verbose)
+            current_importance = run_and_collect_explanations(explainer_instance, X_train, verbose=self.verbose)
 
             # Find the least important feature
             # Apply absolute value on the global explanation results to get the feature importance for each XAI method.
