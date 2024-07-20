@@ -536,12 +536,7 @@ class FeatureElimination(Comparison):
     def add_best_feature_set(self):
         """
         Appends the best feature set analysis results to each entry in the results dictionary based on a specified metric.
-        
-        Parameters:
-        - results_dict (dict): Dictionary containing results for different explainers or methods.
-        - mode (str): Operating mode, which determines the main metric ('classification' for accuracy, 'regression' for MSE).
-        - visualization (bool, optional): Whether to visualize the results during the process.
-        
+              
         Returns:
         - results_dict_upd (dict): Updated results dictionary with best feature set analysis appended.
         
@@ -567,12 +562,6 @@ class FeatureElimination(Comparison):
         
         This function calculates the performance metrics for different numbers of features removed and identifies
         the optimal number of features by finding the highest metric value.
-
-        Parameters:
-        - model_ev_results (list): A list of DataFrame objects containing model evaluation metrics.
-        - main_metric (str): The metric name to evaluate for the best feature set (e.g., 'accuracy', 'mse').
-        - data_type (str, optional): Specifies the type of data ('train', 'val', or 'test') on which metrics are based.
-        - visualization (bool, optional): If True, generates a plot to visualize the metrics across different feature sets.
 
         Returns:
         - num_eliminated_feats (int): The number of features suggested to be removed for optimal performance.
@@ -615,10 +604,6 @@ class FeatureElimination(Comparison):
     def plot_feature_selection_outcomes(self):
         """
         This function generate visualization of performance metrics for selected feature sets evaluated on the test set.
-
-        Parameters:
-        - results_dict_upd (dict): A dictionary where each key is an explainer name, and the value is
-        a list containing a DataFrame of feature importances and model performance metrics for each feature set.
 
         This function creates two sets of plots: bar charts for feature importance and a table of metrics.
         """
