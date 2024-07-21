@@ -33,7 +33,7 @@ SHAP, LIME, and Permutation Feature Importance.
 
 ### Feature selection
 
-The FeatureSelection class provides a robust tool for optimizing machine learning models by identifying and prioritizing the most influential features. This class leverages a variety of explainers, including SHAP, LIME, and Permutation Importance, to evaluate feature relevance systematically. It facilitates the iterative removal of less significant features, allowing users to understand the impact of each feature on model performance. This approach not only improves model efficiency but also enhances interpretability, making it easier to understand and justify model decisions. The class supports various modes of operation such as classification and regression, making it versatile across different application scenarios.
+The FeatureSelection class provides a robust tool for optimizing machine learning models by identifying and prioritizing the most influential features. This class leverages a variety of explainers, including SHAP, LIME, and Permutation Importance, to evaluate feature relevance systematically. It facilitates the iterative removal of less significant features, allowing users to understand the impact of each feature on model performance. This approach not only improves model efficiency but also enhances interpretability, making it easier to understand and justify model decisions.
 
 <div align="center">
     <img src="docs/images/Feature_selection_wf.png" alt="Feature Selection Workflow" width="700"/>
