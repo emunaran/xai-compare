@@ -182,6 +182,12 @@ class Consistency(Comparison):
 
 
     def visualize_consistency(self):
+        """
+        Visualizes the mean and standard deviation of feature impacts for different explainers.
+        """
+        if not hasattr(self, 'summary'):
+            raise AttributeError("The consistency_measurement method should be called before visualization.")
+          
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
 
