@@ -6,6 +6,8 @@
 # ------------------------------------------------------------------------------------------------------
 import interpret.glassbox
 import pandas as pd
+import numpy as np
+from typing import Union
 
 # Local application imports
 from xai_compare.explainer import Explainer
@@ -21,14 +23,13 @@ class EBM(Explainer):
         y_train (Union[pd.DataFrame, pd.Series, np.ndarray]): Training data labels.
         y_pred (Union[pd.DataFrame, pd.Series, np.ndarray, None], optional): Predicted labels (used in some contexts).
         mode (str): Indicates whether the explainer is used for 'regression' or 'classification'.
-
     """
-
-    def __init__(self, model, X_train, y_train, y_pred=None, mode=MODE.REGRESSION):
+    def __init__(self, model, X_train: pd.DataFrame, y_train: Union[pd.DataFrame, pd.Series, np.ndarray], 
+                 y_pred: Union[pd.DataFrame, pd.Series, np.ndarray, None] = None, mode: str = MODE.REGRESSION):
         super().__init__(model, X_train, y_train, y_pred, mode)
         self._create_explainer()
 
-    def _create_explainer(self):
+    def _create_explainer(self) -> None:
         """
         Creates an Explainable Boosting Machine (EBM) model based on the mode and fits it with the training data.
         """
@@ -73,7 +74,6 @@ class EBM(Explainer):
             raise NotImplementedError('predict_proba is not available for the regression mode')
 
 
-
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
         Provides a global explanation of the model where the importance of each feature is summarized across all instances.
@@ -84,8 +84,8 @@ class EBM(Explainer):
         Returns:
             pd.DataFrame: A DataFrame containing global importance scores for each feature.
         """
-        return pd.DataFrame(self.explainer.explain_global().data()['scores'][:len(X_data.columns)], index=X_data.columns, columns=['EBM Value'])
-
+        return pd.DataFrame(self.explainer.explain_global().data()['scores'][:len(X_data.columns)], 
+                            index=X_data.columns, columns=['EBM Value'])
 
     def explain_local(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """

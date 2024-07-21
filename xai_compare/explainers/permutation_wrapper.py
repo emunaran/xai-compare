@@ -15,6 +15,18 @@ from xai_compare.config import MODE
 
 
 class Permutations(Explainer):
+    """
+    A class that encapsulates the Permutation Feature Importance method for explaining model predictions.
+
+    Attributes:
+        model: An input machine learning model.
+        X_train (pd.DataFrame): Training data features.
+        y_train (Union[pd.DataFrame, pd.Series, np.ndarray]): Training data labels.
+        mode (str): Indicates whether the explainer is used for 'regression' or 'classification'.
+        num_permutations (int): Number of permutations to perform for each feature.
+        random_state (Union[int, None]): Seed for the random number generator.
+    """
+
     __name__ = "permutations"
 
     def __init__(self, 
@@ -22,8 +34,8 @@ class Permutations(Explainer):
                  X_train: pd.DataFrame, 
                  y_train: Union[pd.DataFrame, pd.Series, np.ndarray],
                  mode: str = MODE.REGRESSION, 
-                 num_permutations=5, 
-                 random_state=None):
+                 num_permutations: int = 5, 
+                 random_state: Union[int, None] = None):
         super().__init__(model, X_train, y_train, mode=mode) # pass parameters to the parent class
         
         self.mode = MODE.REGRESSION
@@ -34,12 +46,12 @@ class Permutations(Explainer):
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
         Calculates permutation feature importance for a given model.
-        
+
         Parameters:
-        - X_data: The feature matrix.
-        
+            X_data (pd.DataFrame): The feature matrix.
+
         Returns:
-        - feature_importances_df: A DataFrame containing the feature names and their mean importance.
+            pd.DataFrame: A DataFrame containing the feature names and their mean importance.
         """
         np.random.seed(self.random_state)
 
