@@ -187,21 +187,27 @@ class Consistency(Comparison):
         """
         if not hasattr(self, 'summary'):
             raise AttributeError("The consistency_measurement method should be called before visualization.")
-        
+          
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
 
         # Ensure axes is always iterable
         axes = np.atleast_1d(axes)
 
+        # Define a list of colors
+        colors = ['red', 'blue', 'green', 'purple', 'orange']
+
         # Loop through each explainer and plot the feature impacts
         for ax, explainer in zip(axes, self.list_explainers):
             mean_impact, std_impact = self.summary[explainer.__name__]
-            ax.barh(self.data.columns, mean_impact.flatten(), xerr=std_impact.flatten(), align='center', alpha=0.7, ecolor='black', capsize=5)
+            for i, res in enumerate(self.results[explainer.__name__]):
+                color = colors[i % len(colors)]  # Cycle through colors list
+                ax.barh(self.data.columns, res.flatten(), align='center', alpha=0.7, facecolor='none', edgecolor=color, linewidth=1)
+            ax.barh(self.data.columns, mean_impact.flatten(), xerr=std_impact.flatten(), align='center', alpha=0.3, color='orange', ecolor='black', capsize=5)
             ax.set_xlabel('Mean Feature Impact')
             ax.set_title(f'Feature Impact and standard deviation \n {explainer.__name__.upper()}')
 
-        plt.tight_layout()
+        fig.tight_layout()
         plt.show()
 
     def consistency_measurement(self, stratified_folds: bool = False):
@@ -658,7 +664,7 @@ class FeatureElimination(Comparison):
 
         for i, (explnr, results) in enumerate(self.results_dict_upd.items()):
             ax = axs if n_expl == 1 else axs[i]
-            results[0][results[2]].plot(kind='barh', ax=ax, legend=False)
+            results[0][results[2]].plot(kind='barh', ax=ax, legend=False, color='orange', alpha=0.3, edgecolor='#A52A2A')
             ax.set_title(f'{explnr.upper()}\n feature importance\n Best result with \n{results[2]} features removed\n\
 {len(results[0][results[2]])} features remain')
 
