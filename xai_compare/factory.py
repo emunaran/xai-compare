@@ -189,15 +189,36 @@ class ComparisonFactory:
         if comparison_type == "feature_selection":
             # Importing locally to avoid circular dependency
             from xai_compare.comparison import FeatureElimination
-            return FeatureElimination(model=self.model, data=self.data, target=self.y, custom_explainer=self.custom_explainer, 
-                                      mode=self.mode, random_state=self.random_state, verbose=self.verbose, 
-                                      threshold=self.threshold, metric=self.metric, default_explainers=self.default_explainers)
+            if self.model:
+                    feature_selectionTchn = FeatureElimination(model = self.model,
+                                                            data = self.data,
+                                                            target = self.y,
+                                                            custom_explainer = self.custom_explainer,
+                                                            mode = self.mode, 
+                                                            random_state = self.random_state, 
+                                                            verbose=self.verbose,
+                                                            threshold=self.threshold,
+                                                            metric=self.metric,
+                                                            default_explainers = self.default_explainers)
+                else:
+                    feature_selectionTchn = FeatureElimination
+                return feature_selectionTchn
         elif comparison_type == "consistency":
             # Importing locally to avoid circular dependency
             from xai_compare.comparison import Consistency
-            return Consistency(model=self.model, data=self.data, target=self.y, custom_explainer=self.custom_explainer, 
-                               mode=self.mode, random_state=self.random_state, verbose=self.verbose, 
-                               n_splits=self.n_splits, default_explainers=self.default_explainers)
+            if self.model:
+                consistencyTchn = Consistency(model = self.model,
+                                                         data = self.data,
+                                                         target = self.y,
+                                                         custom_explainer = self.custom_explainer,
+                                                         mode = self.mode, 
+                                                         random_state = self.random_state, 
+                                                         verbose=self.verbose,
+                                                         n_splits = self.n_splits,
+                                                         default_explainers = self.default_explainers)
+            else:
+                consistencyTchn = Consistency
+            return consistencyTchn
         
         # If there are more Comparison Techniques you want to account for, the code can be added here:
         
