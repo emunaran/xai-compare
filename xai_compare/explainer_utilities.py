@@ -1,3 +1,11 @@
+# ----------------------------------------------------------------------------------------------------
+# Module explainer_utilities
+#
+# This module contains utility functions for working with various explanation methods.
+# The functions are designed to facilitate the generation, collection, and handling of explanations from
+# different explainers.
+# ------------------------------------------------------------------------------------------------------
+
 import pandas as pd
 
 def run_and_collect_explanations(explainer, X_data, verbose=True) -> pd.DataFrame:
@@ -20,19 +28,12 @@ def run_and_collect_explanations(explainer, X_data, verbose=True) -> pd.DataFram
     Raises:
         Exception: Captures and prints any exceptions raised during the explanation generation, indicating failure.
     """
-    results = []
     
     try:
         global_explanation = explainer.explain_global(X_data)
-        results.append(global_explanation)
         if verbose:
             print(f'\n {explainer.__name__} explanation created')
+        return global_explanation
     except Exception as e:
         print(f"Failed to create {explainer.__name__} explanation: {e}")
- 
-
-    # Concatenate all results along columns (axis=1), handling cases where some explanations might fail
-    if results:
-        return pd.concat(results, axis=1)
-    else:
-        return pd.DataFrame()  # Return an empty DataFrame if no explanations were added
+        return pd.DataFrame()  # Return an empty DataFrame if explanation generation fails

@@ -1,21 +1,29 @@
+# ----------------------------------------------------------------------------------------------------
+# Module Comparison
+#
+# This module contains classes for comparing model Explainers, evaluating their consistency, and assessing 
+# feature selection strategies. It provides a framework for generating comparison reports, visualizing results, 
+# and measuring the stability and performance of different explainer methods on machine learning models.
+#
+# ------------------------------------------------------------------------------------------------------
+
 from abc import ABC, abstractmethod
 import copy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from typing import Union
+from typing import Union, List, Type
 from sklearn.base import clone
-from sklearn.metrics import (
-    accuracy_score, mean_squared_error, precision_score, recall_score,
-    roc_auc_score, mean_absolute_error, f1_score
-)
+from sklearn.metrics import (accuracy_score, mean_squared_error, precision_score, 
+                    recall_score, roc_auc_score, mean_absolute_error, f1_score)
 from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
 import xgboost as xgb
 
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
 from xai_compare.factory import ExplainerFactory
+from xai_compare.explainer import Explainer
 from xai_compare.explainer_utilities import run_and_collect_explanations
 
 
@@ -34,17 +42,16 @@ class Comparison(ABC):
         The feature dataset used for model training and explanation.
     target : Union[pd.DataFrame, pd.Series, np.ndarray]
         The target variables associated with the data.
-    custom_explainer : optional
-        Custom explainer instances to be added to the default explainers,
-        should be made with the framework from explainer.py
     mode : str, default MODE.REGRESSION
-        The mode of operation from config.py
+        The mode of operation from config.py.
     random_state : int, default 42
         Seed used by the random number generator for reproducibility.
     verbose : bool, default True
         Enables verbose output during operations.
-    default_explainers : list
-        List of default explainers from config.py
+    default_explainers : list, default EXPLAINERS
+        List of default explainers from config.py.
+    custom_explainer : Union[Type[Explainer], List[Type[Explainer]], None], optional
+        Custom explainer classes to be added to the default explainers.
 
     Methods:
     -------
@@ -58,11 +65,11 @@ class Comparison(ABC):
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 custom_explainer=None,
                  mode: str = MODE.REGRESSION, 
-                 random_state=42, 
-                 verbose=True,
-                 default_explainers=EXPLAINERS):
+                 random_state: int = 42, 
+                 verbose: bool = True,
+                 default_explainers: List[str] = EXPLAINERS,
+                 custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
         self.model = model
         self.data = data
         self.y = target
@@ -72,19 +79,16 @@ class Comparison(ABC):
         self.default_explainers = default_explainers
         self.list_explainers = self.create_list_explainers(custom_explainer)
 
-    def create_list_explainers(self, custom_explainer):
+        
+    def create_list_explainers(self, custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None]) -> List[Explainer]:
         """
         Creates a list of explainer classes from default and custom explainers.
 
         Parameters:
-        ----------
-        custom_explainer : list
-            Custom explainer or a list of custom explainer classes.
+            custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer or a list of custom explainer classes.
 
         Returns:
-        -------
-        list
-            A list of initialized explainer classes.
+            List[Explainer]: A list of initialized explainer classes.
         """
         list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
@@ -106,38 +110,48 @@ class Comparison(ABC):
 
 class Consistency(Comparison):
     """
-    A class to evaluate consistency of different explainers on a specified model.
+    A class to evaluate the consistency of different explainers on a specified model.
 
     Attributes:
-    - model (Model): The machine learning model to be evaluated.
-    - data: data
-    - target: labels.
-    - verbose (bool): If True, prints additional information during the function's execution.
+        model (Model): The machine learning model to be evaluated.
+        data (pd.DataFrame): The feature dataset used for model training and explanation.
+        target (Union[pd.DataFrame, pd.Series, np.ndarray]): The target variables associated with the data.
+        verbose (bool): If True, prints additional information during the function's execution.
+        n_splits (int): The number of splits for cross-validation.
+        consistency_scores_df (pd.DataFrame, optional): DataFrame containing the summary statistics of feature impact standard deviations.
     """
 
     def __init__(self,
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 custom_explainer=None,
                  mode: str = MODE.REGRESSION, 
-                 random_state=42, 
-                 verbose=False,
+                 random_state: int = 42, 
+                 verbose: bool = False,
                  n_splits: int = 5, 
-                 default_explainers=EXPLAINERS):
-        super().__init__(model, data, target, custom_explainer, mode=mode, random_state=random_state, verbose=verbose, default_explainers=default_explainers)
+                 default_explainers: List[str] = EXPLAINERS,
+                 custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
+        
+        super().__init__(model, data, target, mode=mode, random_state=random_state, verbose=verbose, 
+                         default_explainers=default_explainers, custom_explainer=custom_explainer)
         self.n_splits = n_splits
         self.consistency_scores_df = None
 
     def apply(self):
+        """
+        Applies the consistency measurement if it has not been done yet.
+        """
         if self.consistency_scores_df is None:
             self.consistency_measurement()
         else:
             pass
 
     def display(self):
+        """
+        Displays the consistency measurement results.
+        """
         self.visualize_consistency()
-        print(self.consistency_scores_df)  
+        print(self.scores)  
 
 
     def visualize_consistency(self):
@@ -160,7 +174,7 @@ class Consistency(Comparison):
         plt.tight_layout()
         plt.show()
 
-    def consistency_measurement(self, stratified_folds=False):
+    def consistency_measurement(self, stratified_folds: bool = False):
         """
         Measures the consistency of feature explanations across different folds.
         
@@ -244,14 +258,15 @@ class FeatureElimination(Comparison):
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 custom_explainer=None,
                  mode: str = MODE.REGRESSION, 
                  random_state=42, 
                  verbose=True,
                  threshold=0.2,
                  metric=None, 
-                 default_explainers=EXPLAINERS):
-        super().__init__(model, data, target, custom_explainer, mode=mode, verbose=verbose, random_state=random_state, default_explainers=default_explainers)
+                 default_explainers=EXPLAINERS,
+                 custom_explainer=None):
+        super().__init__(model, data, target, mode=mode, verbose=verbose, random_state=random_state, 
+                         default_explainers=default_explainers, custom_explainer=custom_explainer)
         self.threshold = threshold
         self.results = {}
         self.df_expl_results = None
