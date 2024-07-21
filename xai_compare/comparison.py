@@ -70,6 +70,26 @@ class Comparison(ABC):
                  verbose: bool = True,
                  default_explainers: List[str] = EXPLAINERS,
                  custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
+
+        if not hasattr(model, 'fit'):
+            raise ValueError("The model should have a 'fit' method.")
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("Data should be a pandas DataFrame.")
+        if not isinstance(target, (pd.DataFrame, pd.Series, np.ndarray)):
+            raise TypeError("Target should be a pandas DataFrame, Series, or a numpy ndarray.")
+        if mode not in [MODE.REGRESSION, MODE.CLASSIFICATION]:
+            raise ValueError(f"Invalid mode. Expected 'REGRESSION' or 'CLASSIFICATION', got {mode}.")
+        if not isinstance(random_state, int):
+            raise TypeError("Random state should be an integer.")
+        if not isinstance(verbose, bool):
+            raise TypeError("Verbose should be a boolean.")
+        if not isinstance(default_explainers, list):
+            raise TypeError("Default explainers should be a list of strings.")
+        if not all(explainer in EXPLAINERS for explainer in default_explainers):
+            raise ValueError(f"Some default explainers are not in the allowed EXPLAINERS list: {default_explainers}")
+        if custom_explainer and not isinstance(custom_explainer, (Type[Explainer], list, None)):
+            raise TypeError("Custom explainer should be an Explainer type, a list of Explainer types, or None.")
+
         self.model = model
         self.data = data
         self.y = target
@@ -137,6 +157,10 @@ class Consistency(Comparison):
         
         super().__init__(model, data, target, mode=mode, random_state=random_state, verbose=verbose, 
                          default_explainers=default_explainers, custom_explainer=custom_explainer)
+        
+        if not isinstance(n_splits, int) or n_splits <= 1:
+            raise ValueError("n_splits should be an integer greater than 1.")
+    
         self.n_splits = n_splits
         self.consistency_scores_df = None
 
@@ -161,6 +185,9 @@ class Consistency(Comparison):
         """
         Visualizes the mean and standard deviation of feature impacts for different explainers.
         """
+        if not hasattr(self, 'summary'):
+            raise AttributeError("The consistency_measurement method should be called before visualization.")
+        
         num_explainers = len(self.list_explainers)
         fig, axes = plt.subplots(1, num_explainers, figsize=(15, 6), sharey=True)
 
@@ -187,6 +214,10 @@ class Consistency(Comparison):
         Returns:
             DataFrame: DataFrame containing summary statistics of feature impact standard deviations.
         """
+        
+        if stratified_folds and self.mode != MODE.CLASSIFICATION:
+            raise ValueError("StratifiedKFold is only applicable for classification mode.")
+
         if stratified_folds:
             folds = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
         else:
@@ -243,6 +274,8 @@ class Consistency(Comparison):
         self.scores = consistency_scores_df
 
 
+
+
 class FeatureElimination(Comparison):
     """
     A class to evaluate different feature elimination strategies provided by the list of explainers on a specified model.
@@ -268,6 +301,28 @@ class FeatureElimination(Comparison):
                  metric=None, 
                  default_explainers=EXPLAINERS,
                  custom_explainer=None):
+        
+        if not hasattr(model, 'fit'):
+            raise ValueError("The model should have a 'fit' method.")
+        if not isinstance(data, pd.DataFrame):
+            raise TypeError("Data should be a pandas DataFrame.")
+        if not isinstance(target, (pd.DataFrame, pd.Series, np.ndarray)):
+            raise TypeError("Target should be a pandas DataFrame, Series, or a numpy ndarray.")
+        if mode not in [MODE.REGRESSION, MODE.CLASSIFICATION]:
+            raise ValueError(f"Invalid mode. Expected 'REGRESSION' or 'CLASSIFICATION', got {mode}.")
+        if not isinstance(random_state, int):
+            raise TypeError("Random state should be an integer.")
+        if not isinstance(verbose, bool):
+            raise TypeError("Verbose should be a boolean.")
+        if not isinstance(default_explainers, list):
+            raise TypeError("Default explainers should be a list of strings.")
+        if not all(explainer in EXPLAINERS for explainer in default_explainers):
+            raise ValueError(f"Some default explainers are not in the allowed EXPLAINERS list: {default_explainers}")
+        if custom_explainer and not isinstance(custom_explainer, (Type[Explainer], list, None)):
+            raise TypeError("Custom explainer should be an Explainer type, a list of Explainer types, or None.")
+        if not isinstance(threshold, (int, float)) or not (0 < threshold <= 1):
+            raise ValueError("Threshold should be a float between 0 and 1.")
+
         super().__init__(model, data, target, mode=mode, verbose=verbose, random_state=random_state, 
                          default_explainers=default_explainers, custom_explainer=custom_explainer)
         self.threshold = threshold
