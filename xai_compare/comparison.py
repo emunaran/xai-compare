@@ -89,6 +89,8 @@ class Comparison(ABC):
         list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:
+            # Ensure custom_explainer is a list, even if it's a single object
+            custom_explainer = custom_explainer if isinstance(custom_explainer, list) else [custom_explainer]
             list_explainers.extend(custom_explainer)
         
         return list_explainers
@@ -221,7 +223,7 @@ class Consistency(Comparison):
                 print(f"No data available for explainer: {key}")
 
         consistency_scores_df = pd.DataFrame(consistency_scores).T
-        self.consistency_scores_df = consistency_scores_df
+        self.scores = consistency_scores_df
 
 
 class FeatureElimination(Comparison):
