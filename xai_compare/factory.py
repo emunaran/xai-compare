@@ -200,9 +200,9 @@ class ComparisonFactory:
                                                             threshold=self.threshold,
                                                             metric=self.metric,
                                                             default_explainers = self.default_explainers)
-                else:
-                    feature_selectionTchn = FeatureElimination
-                return feature_selectionTchn
+            else:
+                feature_selectionTchn = FeatureElimination
+            return feature_selectionTchn
         elif comparison_type == "consistency":
             # Importing locally to avoid circular dependency
             from xai_compare.comparison import Consistency
