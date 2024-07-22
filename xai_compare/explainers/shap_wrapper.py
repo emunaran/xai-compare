@@ -14,6 +14,8 @@ from xai_compare.explainer import Explainer
 class SHAP(Explainer):
     """
     A class that encapsulates the SHAP (SHapley Additive exPlanations) method for explaining model predictions.
+    The method is detailed in the paper "A Unified Approach to Interpreting Model Predictions"
+    (https://arxiv.org/pdf/1705.07874)
 
     Attributes:
         model: An input machine learning model.

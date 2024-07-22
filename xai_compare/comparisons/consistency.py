@@ -96,6 +96,8 @@ class Consistency(Comparison):
             ax.set_title(f'Feature Impact and standard deviation \n {explainer.__name__.upper()}')
 
         fig.tight_layout()
+
+        self.comparison_plot = fig
         plt.show()
 
     def consistency_measurement(self, stratified_folds: bool = False):

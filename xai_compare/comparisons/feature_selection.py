@@ -415,10 +415,13 @@ class FeatureSelection(Comparison):
 
         fig.suptitle('Overall Feature Selection Results', fontsize=16, fontweight='bold')
         plt.tight_layout()
+        self.comparison_plot = fig
         plt.show()
 
         # Second plot for the table
         fig, ax = plt.subplots(figsize=(15, 2)) 
+        
+        
         ax.axis('off')
 
         # get result without features elimination

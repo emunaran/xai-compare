@@ -17,6 +17,9 @@ from xai_compare.config import MODE
 class Permutations(Explainer):
     """
     A class that encapsulates the Permutation Feature Importance method for explaining model predictions.
+    Further details can be found in the literature, such as in the book "Interpretable Machine Learning" 
+    by Christoph Molnar, which discusses various interpretation methods including permutation importance.
+    (https://christophm.github.io/interpretable-ml-book/feature-importance.html)
 
     Attributes:
         model: An input machine learning model.
