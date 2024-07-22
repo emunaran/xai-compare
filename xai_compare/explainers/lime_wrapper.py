@@ -19,6 +19,8 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*X does not ha
 class LIME(Explainer):
     """
     A class that encapsulates the LIME (Local Interpretable Model-agnostic Explanations) method for explaining model predictions.
+    The method is presented in the paper "Why Should I Trust You?": Explaining the Predictions of Any Classifier
+    (https://arxiv.org/pdf/1602.04938).
 
     Attributes:
         model: An input machine learning model.
