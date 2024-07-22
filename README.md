@@ -2,13 +2,26 @@
     <img src="docs/images/xai-compare_logo.png" alt="Logo" width="200"/>
 </div>
 
+---
+[![PyPI](https://img.shields.io/badge/pypi-v0.1.0-orange
+)](https://pypi.org/project/)
+![License](https://img.shields.io/badge/license-MIT-green
+)
+[![Python](https://img.shields.io/badge/python-%3E3.9-blue)](https://pypi.org/project/)
+
+
 ## Description
 The xai-compare package provides a comprehensive framework for comparing various Explainable AI (XAI) techniques. It supports popular XAI methods such as SHAP, LIME, and Permutation Feature Importance, and introduces comparison techniques like consistency measurement and feature selection analysis. This package is designed for flexibility and ease of integration, making it ideal for enhancing model transparency and model results.
 
 
 ## Installation
 
-The package is currently under development and will be available for installation via pip soon. Stay tuned for updates.
+The package can be installed from [PyPI](https://pypi.org/project/):
+
+Using pip:
+```bash
+pip install shap
+```
 
 ## Explainers
 
@@ -67,6 +80,11 @@ feat_selection.display()
 
 ### Consistency
 The Consistency class assesses the stability and reliability of explanations provided by various explainers across different splits of data. This class is crucial for determining whether the insights provided by model explainers such as SHAP, LIME, and Permutation Importance are consistent regardless of data variances. By systematically evaluating the explainers across multiple data folds, the Consistency class helps ensure that the interpretations are robust and can be trusted. It includes features for both visualizing and quantitatively measuring the consistency of feature impact, making it an essential tool for model validation and understanding in various scenarios, from healthcare to finance.
+
+<div align="center">
+    <img src="docs/images/Consistency_wf.png" alt="Consistency Measurement Workflow" width="700"/>
+    <p style="color: #808080;">Consistency Measurement Workflow</p>
+</div>
 
 ```
 from sklearn.ensemble import RandomForestClassifier
