@@ -188,7 +188,7 @@ class ComparisonFactory:
 
         if comparison_type == "feature_selection":
             # Importing locally to avoid circular dependency
-            from xai_compare.comparison import FeatureSelection
+            from xai_compare.comparisons import FeatureSelection
             if self.model:
                     feature_selectionTchn = FeatureSelection(model = self.model,
                                                             data = self.data,
@@ -205,7 +205,7 @@ class ComparisonFactory:
             return feature_selectionTchn
         elif comparison_type == "consistency":
             # Importing locally to avoid circular dependency
-            from xai_compare.comparison import Consistency
+            from xai_compare.comparisons import Consistency
             if self.model:
                 consistencyTchn = Consistency(model = self.model,
                                                          data = self.data,
