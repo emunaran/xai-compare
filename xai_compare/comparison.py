@@ -282,7 +282,8 @@ class Consistency(Comparison):
 
 
 
-class FeatureElimination(Comparison):
+class FeatureSelection(Comparison):
+
     """
     A class to evaluate different feature elimination strategies provided by the list of explainers on a specified model.
 
