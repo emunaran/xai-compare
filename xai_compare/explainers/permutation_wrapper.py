@@ -76,10 +76,10 @@ class Permutations(Explainer):
         # Average the importance scores over the number of repeats
         averaged_importances = {feature: np.mean(importances) for feature, importances in feature_importances.items()}
         
-        # Normalize the importance scores to sum to 1 (for comparability with other explainers)
+        # Normalize the importance scores to sum to 0.5 (for comparability with other explainers)
         total_importance = sum(averaged_importances.values())
-        normalized_importances = {feature: importance / total_importance for feature, importance in averaged_importances.items()}
-        
+        normalized_importances = {feature: (importance / total_importance) * 0.5 for feature, importance in averaged_importances.items()}
+
         # Convert to DataFrame 
         feature_importances_df = pd.DataFrame.from_dict(normalized_importances, orient='index', columns=['importance'])
         

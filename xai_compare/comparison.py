@@ -194,16 +194,10 @@ class Consistency(Comparison):
         # Ensure axes is always iterable
         axes = np.atleast_1d(axes)
 
-        # Define a list of colors
-        colors = ['red', 'blue', 'green', 'purple', 'orange']
-
         # Loop through each explainer and plot the feature impacts
         for ax, explainer in zip(axes, self.list_explainers):
             mean_impact, std_impact = self.summary[explainer.__name__]
-            for i, res in enumerate(self.results[explainer.__name__]):
-                color = colors[i % len(colors)]  # Cycle through colors list
-                ax.barh(self.data.columns, res.flatten(), align='center', alpha=0.7, facecolor='none', edgecolor=color, linewidth=1)
-            ax.barh(self.data.columns, mean_impact.flatten(), xerr=std_impact.flatten(), align='center', alpha=0.3, color='orange', ecolor='black', capsize=5)
+            ax.barh(self.data.columns, mean_impact.flatten(), xerr=std_impact.flatten(), align='center', alpha=0.3, color='orange', edgecolor='#A52A2A', ecolor='black', capsize=5)
             ax.set_xlabel('Mean Feature Impact')
             ax.set_title(f'Feature Impact and standard deviation \n {explainer.__name__.upper()}')
 
