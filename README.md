@@ -20,7 +20,7 @@ The package can be installed from [PyPI](https://pypi.org/project/):
 
 Using pip:
 ```bash
-pip install shap
+pip install xai-compare
 ```
 
 ## Explainers
