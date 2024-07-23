@@ -36,8 +36,8 @@ class ExplainerFactory:
                  model: Any = None,
                  X_train: pd.DataFrame = None,
                  X_test: pd.DataFrame = None,
-                 y_train: Union[pd.DataFrame, pd.Series, np.ndarray] = None,
-                 y_test: Union[pd.DataFrame, pd.Series, np.ndarray] = None,
+                 y_train: pd.DataFrame = None,
+                 y_test: pd.DataFrame = None,
                  mode: str = MODE.REGRESSION):
         
         if model and not hasattr(model, 'fit'):
@@ -98,7 +98,7 @@ class ExplainerFactory:
 
 import string
 from typing import Any
-from typing import Union, List, Type
+from typing import Union
 
 import pandas as pd
 import numpy as np
@@ -119,13 +119,13 @@ class ComparisonFactory:
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
                  mode: str = MODE.REGRESSION, 
-                 random_state: int = 42, 
-                 verbose: bool = True,
-                 threshold: float = 0.2,
-                 metric: Union[str, None] = None,
+                 random_state=42, 
+                 verbose=True,
+                 threshold=0.2,
+                 metric=None,
                  n_splits: int = 5,
-                 default_explainers: List[str] = EXPLAINERS,
-                 custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
+                 default_explainers=EXPLAINERS,
+                 custom_explainer = None):
     
         if not hasattr(model, 'fit'):
             raise ValueError("The model should have a 'fit' method.")
@@ -200,7 +200,6 @@ class ComparisonFactory:
                                                             threshold=self.threshold,
                                                             metric=self.metric,
                                                             default_explainers = self.default_explainers)
-                    
             else:
                 feature_selectionTchn = FeatureSelection
             return feature_selectionTchn
