@@ -172,6 +172,9 @@ def fico() -> Tuple[pd.DataFrame, pd.Series]:
 
     The original dataset is located at: https://www.kaggle.com/datasets/parisrohan/credit-score-classification
 
+    To replicate the data preprocessing from raw data to the processed dataset "fico_preprocessed.csv," 
+    you can run the notebook located here: xai_compare/data/fico/preprocessed/preprocessing.ipynb
+
     Returns:
     -------
     Tuple[pd.DataFrame, pd.Series]
@@ -211,7 +214,7 @@ def fico() -> Tuple[pd.DataFrame, pd.Series]:
 
         data, target = xai_compare.datasets.fico()
     """
-    dataset_path = get_data_path('data/fico/fico_preprocessed.csv')
+    dataset_path = get_data_path('data/fico/preprocessed/fico_preprocessed.csv')
 
     # Read the dataset
     df = pd.read_csv(dataset_path)
