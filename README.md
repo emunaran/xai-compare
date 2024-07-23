@@ -139,3 +139,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Acknowledgments
 - The California housing dataset is sourced from scikit-learn.
 - SHAP and LIME libraries are used for model interpretability.
+
+## Inspiration
+
+- Chirag Agarwal, Satyapriya Krishna, Eshika Saxena, Martin Pawelczyk, Nari Johnson, Isha Puri, Marinka Zitnik, and Himabindu Lakkaraju. 2022. OpenXAI: Towards a Transparent Evaluation of Model Explanations. In *Thirty-sixth Conference on Neural Information Processing Systems Datasets and Benchmarks Track*. <br>Available at: [https://openreview.net/forum?id=MU2495w47rz](https://openreview.net/forum?id=MU2495w47rz)<br>
+[GitHub](https://github.com/AI4LIFE-GROUP/OpenXAI?tab=readme-ov-file)
+
