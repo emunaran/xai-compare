@@ -164,3 +164,63 @@ def california_housing() -> Tuple[pd.DataFrame, pd.Series]:
     y = df['target']
 
     return X, y
+
+
+def fico() -> Tuple[pd.DataFrame, pd.Series]:
+    """
+    Return the preprocessed and normalized FICO dataset.
+
+    The original dataset is located at: https://www.kaggle.com/datasets/parisrohan/credit-score-classification
+
+    To replicate the data preprocessing from raw data to the processed dataset "fico_preprocessed.csv," 
+    you can run the notebook located here: xai_compare/data/fico/preprocessed/preprocessing.ipynb
+
+    Returns:
+    -------
+    Tuple[pd.DataFrame, pd.Series]
+        A tuple containing the features DataFrame and the target Series.
+
+    Feature Columns:
+        - 'Month': Month of the data record
+        - 'Age': Age of the customer
+        - 'Occupation': Customer's occupation or job title
+        - 'Annual_Income': Annual income of the customer
+        - 'Monthly_Inhand_Salary': Net monthly income available to the customer
+        - 'Num_Bank_Accounts': Number of bank accounts the customer holds
+        - 'Num_Credit_Card': Number of credit cards owned by the customer
+        - 'Interest_Rate': Interest rate associated with financial transactions
+        - 'Num_of_Loan': Number of loans the customer has
+        - 'Type_of_Loan': Type or category of the loan
+        - 'Delay_from_due_date': Delay in payment from the due date
+        - 'Num_of_Delayed_Payment': Number of delayed payments
+        - 'Changed_Credit_Limit': Any recent changes in the customer's credit limit
+        - 'Num_Credit_Inquiries': Number of credit inquiries made by the customer
+        - 'Credit_Mix': Variety of credit types in the customer's financial profile
+        - 'Outstanding_Debt': Total outstanding debt of the customer
+        - 'Credit_Utilization_Ratio': Ratio of credit used to credit available
+        - 'Credit_History_Age': Age of the customer's credit history
+        - 'Payment_of_Min_Amount': Payment behavior regarding the minimum amount due
+        - 'Total_EMI_per_month': Total Equated Monthly Installments paid by the customer
+        - 'Amount_invested_monthly': Amount invested by the customer monthly
+        - 'Payment_Behaviour': General behavior regarding payments
+        - 'Monthly_Balance': Monthly balance in the customer's financial accounts
+
+    Target:
+        - 'Credit_Score': Numerical representation of the customer's creditworthiness
+
+    Examples:
+    --------
+    To get the processed data and target labels::
+
+        data, target = xai_compare.datasets.fico()
+    """
+    dataset_path = get_data_path('data/fico/preprocessed/fico_preprocessed.csv')
+
+    # Read the dataset
+    df = pd.read_csv(dataset_path)
+
+    # Extract features and target
+    X = df.iloc[:, :-1]
+    y = df.Credit_Score
+
+    return X, y
