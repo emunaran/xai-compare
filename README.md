@@ -22,7 +22,7 @@ The package can be installed from [PyPI](https://pypi.org/project/):
 
 Using pip:
 ```bash
-pip install xai_compare
+pip install xai-compare
 ```
 
 ## Explainers
