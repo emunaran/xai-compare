@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from typing import Union, Type
+from typing import Union, Type, List
 from sklearn.base import clone
 from sklearn.metrics import (accuracy_score, mean_squared_error, precision_score, 
                     recall_score, roc_auc_score, mean_absolute_error, f1_score)
@@ -46,12 +46,12 @@ class FeatureSelection(Comparison):
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
                  mode: str = MODE.REGRESSION, 
-                 random_state=42, 
-                 verbose=True,
-                 threshold=0.2,
-                 metric=None, 
-                 default_explainers=EXPLAINERS,
-                 custom_explainer=None):
+                 random_state: int = 42, 
+                 verbose: bool = True,
+                 threshold: float = 0.2,
+                 metric: Union[str, None] = None, 
+                 default_explainers: List[str] = EXPLAINERS,
+                 custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
         
         if not hasattr(model, 'fit'):
             raise ValueError("The model should have a 'fit' method.")
