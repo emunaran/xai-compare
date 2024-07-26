@@ -5,9 +5,10 @@
 # ------------------------------------------------------------------------------------------------------
 
 import string
-from typing import Any
+from typing import Any, Union, List, Type
 
 import pandas as pd
+import numpy as np
 
 # Local application imports
 from xai_compare.explainer import Explainer
@@ -96,16 +97,7 @@ class ExplainerFactory:
 #
 # ------------------------------------------------------------------------------------------------------
 
-import string
-from typing import Any
-from typing import Union, List, Type
-
-import pandas as pd
-import numpy as np
-
 # Local application imports
-from xai_compare.config import MODE, EXPLAINERS
-
 
 class ComparisonFactory:
     """
