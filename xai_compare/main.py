@@ -1,80 +1,64 @@
-# ----------------------------------------------------------------------------------------------------
-# Main file for testing
-#
-#
-# ------------------------------------------------------------------------------------------------------
+"""
+Main File for Testing the XAI Comparison Package
+
+This script demonstrates the setup and usage of the XAI Comparison package,
+using a RandomForestClassifier on the German credit dataset.
+
+Imports:
+    - RandomForestClassifier from sklearn.ensemble
+    - ComparisonFactory from xai_compare.factory
+    - german_credit dataset from xai_compare.datasets
+    - MODE from xai_compare.config
+
+Steps:
+    1. Define the model
+    2. Load the dataset
+    3. Set the mode (classification/regression)
+    4. Configure parameters
+    5. Initialize the ComparisonFactory
+    6. Create and apply comparisons
+"""
+
 
 # Standard library imports
-import pandas as pd
-import numpy as np
-
-# Third party imports
-from sklearn.datasets import fetch_california_housing
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-import matplotlib.pyplot as plt
-import seaborn as sns
+from sklearn.ensemble import RandomForestClassifier
 
 # Local application imports
-from xai_compare.explainer_factory import ExplainerFactory
-from xai_compare.explainer_utilities import run_and_collect_explanations
+from xai_compare.factory import ComparisonFactory
+from xai_compare.datasets import german_credit
+from xai_compare.config import MODE, COMPARISON_TECHNIQUES
 
 
-# Use a dataset from the sklearn library for housing prices
-dataset_1 = fetch_california_housing(as_frame=True)
-X = dataset_1['data']
-y = dataset_1['target']
+# Step 1: Define the model
+model = RandomForestClassifier(max_depth=4, n_estimators=100, random_state=42)
 
-# Cut dataset for processing speed goal
-X_small = X[:1000]
-y_small = y[:1000]
+# Step 2: Load the dataset
+X, y = german_credit()
 
-# Splits into X and Y first and then splits it further into validation data and training data
-X_train, X_test, y_train, y_test = train_test_split(X_small, y_small, test_size=0.2)
+# Step 3: Set the mode
+mode = MODE.CLASSIFICATION
 
+# Step 4: Configure parameters
+params = {'model': model,
+          'data': X,
+          'target': y,
+          'custom_explainer': None,
+          'verbose': False,
+          'mode': mode,
+          # 'default_explainers': ['shap', 'lime', 'permutations']  # Uncomment to specify explainers
+          }
 
-# Initialize the scaler
-scaler = StandardScaler()
-
-# Normalize the training data
-train_X_scaled = scaler.fit_transform(X_train)
-
-# Normalize the validation data using the same scaler
-val_X_scaled = scaler.transform(X_test)
-
-# Convert scaled data back to DataFrame
-X_train = pd.DataFrame(train_X_scaled, columns=X_train.columns)
-X_test = pd.DataFrame(val_X_scaled, columns=X_test.columns)
+# Option to create a custom explainer (uncomment and define your custom explainer)
+# my_custom_explainer = create_my_custom_explainer(...)
 
 
-# Create a random forest model then train it
-my_model = RandomForestRegressor(random_state=0)
-my_model.fit(X_train, y_train)
-print('\n Model trained')
+# Step 5: Initialize the ComparisonFactory
+# The ComparisonFactory is responsible for creating comparison objects based on the provided parameters.
+comparison_factory = ComparisonFactory(**params)
 
-# Initialize the ExplainerFactory with the trained model and data splits.
+# Step 6: Create and apply comparisons
 
-expl_fctry = ExplainerFactory(my_model, X_train, X_test, y_train, y_test)
-
-results = run_and_collect_explanations(expl_fctry, X_test)
-print(results)
-
-def plot_lime_shap(data, shap_column, lime_column):
-    
-    colors = sns.color_palette("deep")
-    plt.figure(figsize=(8, 6))    
-    
-    bar_positions = np.arange(len(data))  # Positions of the bars
-    bar_width = 0.35  # Bar widths
-
-    plt.barh(bar_positions - bar_width/2, data[shap_column], height=bar_width, label='SHAP', color=colors[0])  # PSHAP values
-    plt.barh(bar_positions + bar_width/2, data[lime_column], height=bar_width, label='LIME', color=colors[1])  # LIME values
-    plt.yticks(bar_positions, data.index)  #labels
-
-    plt.title('Feature Importances from SHAP and LIME')
-    plt.legend()
-    plt.show()
-
-plot_lime_shap(results, 'SHAP Value', 'LIME Value')
-print('\n plotting completed')
+for technique in COMPARISON_TECHNIQUES:
+    comparison = comparison_factory.create(technique)
+    comparison.apply()
+    comparison.display()
