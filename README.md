@@ -69,13 +69,13 @@ The Consistency class assesses the stability and reliability of explanations pro
 The notebooks below demonstrate different use cases for `xai-compare` package. For hands-on experience and to explore the notebooks in detail, visit the notebooks directory in the repository.
 
 [Feature Selection Test Notebook](
-xai_compare/comparison_tests/feature_selection_test.ipynb)
+xai_compare/demo_notebooks/feature_selection_test.ipynb)
 
 [Consistency Test Notebook](
-xai_compare/comparison_tests/consistency_test.ipynb)
+xai_compare/demo_notebooks/consistency_test.ipynb)
 
 [Main Demo Notebook](
-xai_compare/comparison_tests/main_demo.ipynb)
+xai_compare/demo_notebooks/main_demo.ipynb)
 
 
 ## Call for Contributors

@@ -13,6 +13,7 @@ class MODE:
     CLASSIFICATION = 'classification'
     REGRESSION = 'regression'
 
+
 EXPLAINERS = ["shap", "lime", "permutations"]  # List of available explainers
 
 COMPARISON_TECHNIQUES = ["feature_selection", "consistency"]  # List of available comparison techniques

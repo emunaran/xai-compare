@@ -45,7 +45,6 @@ class LIME(Explainer):
         # Transpose and convert to DataFrame to match the requested output format
         return pd.DataFrame(global_exp, index=X_data.columns, columns=['LIME Value'])
 
-
     def explain_local(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
         Provides local explanations for each instance in the dataset, explaining the contribution of each feature to the individual prediction.

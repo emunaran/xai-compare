@@ -13,6 +13,7 @@ from typing import Union
 from xai_compare.explainer import Explainer
 from xai_compare.config import MODE
 
+
 class EBM(Explainer):
     """
     A class that encapsulates the Explainable Boosting Machine (EBM) from the interpret community's glassbox models.
@@ -40,7 +41,6 @@ class EBM(Explainer):
             self.explainer = interpret.glassbox.ExplainableBoostingClassifier()
         
         self.explainer.fit(self.X_train, self.y_train)
-
     
     def predict(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -72,7 +72,6 @@ class EBM(Explainer):
             return self.explainer.predict_proba(X_data)
         else:
             raise NotImplementedError('predict_proba is not available for the regression mode')
-
 
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """

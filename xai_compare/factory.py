@@ -61,7 +61,6 @@ class ExplainerFactory:
         self.y_test = y_test
         self.mode = mode
 
-
     def create(self, explainer_type: string) -> Explainer:
         """
         Creates and returns an explainer object based on the specified type.
@@ -88,7 +87,6 @@ class ExplainerFactory:
             raise ValueError("Invalid Explainer type provided")
 
         # If there are more explainers you want to account for, the code can be added here
-
 
 
 # ----------------------------------------------------------------------------------------------------
@@ -156,8 +154,6 @@ class ComparisonFactory:
 
         self.model.fit(self.data, self.y)
 
-
-
     def create(self, comparison_type: string):
         """
         Creates and returns a comparison object based on the specified type.
@@ -177,21 +173,20 @@ class ComparisonFactory:
             ValueError: If the comparison_type is not recognized or unsupported.
         """
 
-
         if comparison_type == "feature_selection":
             # Importing locally to avoid circular dependency
             from xai_compare.comparisons import FeatureSelection
             if self.model:
-                    feature_selectionTchn = FeatureSelection(model = self.model,
-                                                            data = self.data,
-                                                            target = self.y,
-                                                            custom_explainer = self.custom_explainer,
-                                                            mode = self.mode, 
-                                                            random_state = self.random_state, 
-                                                            verbose=self.verbose,
-                                                            threshold=self.threshold,
-                                                            metric=self.metric,
-                                                            default_explainers = self.default_explainers)
+                    feature_selectionTchn = FeatureSelection(model=self.model,
+                                                             data=self.data,
+                                                             target=self.y,
+                                                             custom_explainer=self.custom_explainer,
+                                                             mode=self.mode,
+                                                             random_state=self.random_state,
+                                                             verbose=self.verbose,
+                                                             threshold=self.threshold,
+                                                             metric=self.metric,
+                                                             default_explainers=self.default_explainers)
                     
             else:
                 feature_selectionTchn = FeatureSelection
@@ -200,15 +195,15 @@ class ComparisonFactory:
             # Importing locally to avoid circular dependency
             from xai_compare.comparisons import Consistency
             if self.model:
-                consistencyTchn = Consistency(model = self.model,
-                                                         data = self.data,
-                                                         target = self.y,
-                                                         custom_explainer = self.custom_explainer,
-                                                         mode = self.mode, 
-                                                         random_state = self.random_state, 
-                                                         verbose=self.verbose,
-                                                         n_splits = self.n_splits,
-                                                         default_explainers = self.default_explainers)
+                consistencyTchn = Consistency(model=self.model,
+                                              data=self.data,
+                                              target=self.y,
+                                              custom_explainer=self.custom_explainer,
+                                              mode=self.mode,
+                                              random_state=self.random_state,
+                                              verbose=self.verbose,
+                                              n_splits=self.n_splits,
+                                              default_explainers=self.default_explainers)
             else:
                 consistencyTchn = Consistency
             return consistencyTchn

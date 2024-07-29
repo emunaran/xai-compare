@@ -44,8 +44,7 @@ class Permutations(Explainer):
         self.mode = MODE.REGRESSION
         self.num_permutations = num_permutations
         self.random_state = random_state
- 
-    
+
     def explain_global(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
         Calculates permutation feature importance for a given model.
@@ -87,7 +86,6 @@ class Permutations(Explainer):
         feature_importances_df = pd.DataFrame.from_dict(normalized_importances, orient='index', columns=['importance'])
         
         return feature_importances_df
-    
 
     def explain_local(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
