@@ -23,8 +23,6 @@ from xai_compare.explainer_utilities import run_and_collect_explanations
 from xai_compare.comparison import Comparison
 
 
-
-
 class Consistency(Comparison):
     """
     A class to evaluate the consistency of different explainers on a specified model.
@@ -33,9 +31,19 @@ class Consistency(Comparison):
         model (Model): The machine learning model to be evaluated.
         data (pd.DataFrame): The feature dataset used for model training and explanation.
         target (Union[pd.DataFrame, pd.Series, np.ndarray]): The target variables associated with the data.
+        mode (str): The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
+        random_state (int): Seed used by the random number generator.
         verbose (bool): If True, prints additional information during the function's execution.
         n_splits (int): The number of splits for cross-validation.
+        use_stratified_folds (bool): If True, uses stratified folds for cross-validation.
+        shuffle (bool): If True, shuffles the data before splitting into batches.
+        default_explainers (List[str]): List of default explainers to be used.
+        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer(s) provided by the user.
         consistency_scores_df (pd.DataFrame, optional): DataFrame containing the summary statistics of feature impact standard deviations.
+        scores (Any, optional): Placeholder for the scores obtained during evaluation.
+        summary (Any, optional): Placeholder for the summary of results.
+        results (Any, optional): Placeholder for the detailed results.
+        comparison_plot (Any, optional): Placeholder for the comparison plot.
     """
 
     def __init__(self,
@@ -45,25 +53,33 @@ class Consistency(Comparison):
                  mode: str = MODE.REGRESSION, 
                  random_state: int = 42, 
                  verbose: bool = False,
-                 n_splits: int = 5, 
+                 n_splits: int = 5,
+                 use_stratified_folds: bool = False,
+                 shuffle: bool = False,
                  default_explainers: List[str] = EXPLAINERS,
                  custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
         
         super().__init__(model, data, target, mode=mode, random_state=random_state, verbose=verbose, 
                          default_explainers=default_explainers, custom_explainer=custom_explainer)
-        
+
         if not isinstance(n_splits, int) or n_splits <= 1:
             raise ValueError("n_splits should be an integer greater than 1.")
     
         self.n_splits = n_splits
+        self.use_stratified_folds = use_stratified_folds
+        self.shuffle = shuffle
         self.consistency_scores_df = None
+        self.scores = None
+        self.summary = None
+        self.results = None
+        self.comparison_plot = None
 
     def apply(self):
         """
         Applies the consistency measurement if it has not been done yet.
         """
         if self.consistency_scores_df is None:
-            self.consistency_measurement()
+            self.consistency_measurement(self.use_stratified_folds)
         else:
             pass
 
@@ -73,7 +89,6 @@ class Consistency(Comparison):
         """
         self.visualize_consistency()
         print(self.scores)  
-
 
     def visualize_consistency(self):
         """
@@ -100,24 +115,26 @@ class Consistency(Comparison):
         self.comparison_plot = fig
         plt.show()
 
-    def consistency_measurement(self, stratified_folds: bool = False):
+    def consistency_measurement(self, use_stratified_folds):
         """
         Measures the consistency of feature explanations across different folds.
         
         Parameters:
-            stratified_folds (bool): Whether to use StratifiedKFold instead of KFold.
-        
+            use_stratified_folds (bool): Whether to use StratifiedKFold instead of KFold.
+
         Returns:
             DataFrame: DataFrame containing summary statistics of feature impact standard deviations.
         """
         
-        if stratified_folds and self.mode != MODE.CLASSIFICATION:
+        if use_stratified_folds and self.mode != MODE.CLASSIFICATION:
             raise ValueError("StratifiedKFold is only applicable for classification mode.")
 
-        if stratified_folds:
-            folds = StratifiedKFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
+        self.random_state = self.random_state if self.shuffle else None
+
+        if use_stratified_folds:
+            folds = StratifiedKFold(n_splits=self.n_splits, shuffle=self.shuffle, random_state=self.random_state)
         else:
-            folds = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.random_state)
+            folds = KFold(n_splits=self.n_splits, shuffle=self.shuffle, random_state=self.random_state)
 
         results = {explainer.__name__: [] for explainer in self.list_explainers}
 

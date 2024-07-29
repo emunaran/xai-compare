@@ -37,8 +37,7 @@ class SHAP(Explainer):
         shap_mean = np.mean(shap_values, axis=0)
         return pd.DataFrame(shap_mean, index=x_data.columns, columns=['SHAP Value'])
 
-
-    def chooseExplainer(self, model_type: str) -> sh.Explainer:
+    def choose_explainer(self, model_type: str) -> sh.Explainer:
         """
         Selects an appropriate SHAP explainer based on the model type.
 
@@ -67,7 +66,7 @@ class SHAP(Explainer):
         Returns:
             pd.DataFrame: DataFrame of SHAP values for each feature and data point.
         """
-        explainer_class = self.chooseExplainer(type(self.model).__name__)
+        explainer_class = self.choose_explainer(type(self.model).__name__)
 
         background = sh.kmeans(x_data, 5).data if explainer_class.__name__ != "LinearExplainer" else x_data
 
@@ -82,7 +81,7 @@ class SHAP(Explainer):
             # Regression task or classification with linear model
             shap_df = pd.DataFrame(shap_values, columns=x_data.columns)
 
-        elif len(shap_values)==2:
+        elif len(shap_values) == 2:
             # Binary classification task
             # In binary classification tasks, SHAP returns two items in the shap_values array.
             # The item at index 0 represents the SHAP values for the negative class (label 0),

@@ -15,6 +15,7 @@ from typing import Tuple
 
 # github_data_url = "https://github.com/emunaran/xai-compare/tree/main/data"
 
+
 def get_data_path(filename: str) -> str:
     """
     Get the full path to a data file included in the package.
@@ -30,6 +31,7 @@ def get_data_path(filename: str) -> str:
         The full path to the data file.
     """
     return pkg_resources.resource_filename('xai_compare', filename)
+
 
 def german_credit() -> Tuple[pd.DataFrame, pd.Series]:
     """
@@ -87,6 +89,7 @@ def german_credit() -> Tuple[pd.DataFrame, pd.Series]:
 
     return X, y
 
+
 def diabetes() -> Tuple[pd.DataFrame, pd.Series]:
     """
     Return the diabetes dataset.
@@ -126,6 +129,7 @@ def diabetes() -> Tuple[pd.DataFrame, pd.Series]:
     y = df.Outcome
 
     return X, y
+
 
 def california_housing() -> Tuple[pd.DataFrame, pd.Series]:
     """

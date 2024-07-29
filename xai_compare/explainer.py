@@ -40,8 +40,8 @@ class Explainer(ABC):
         self.y_pred = self._check_input(y_pred) if y_pred is not None else None
         self.mode: str = mode
 
-    
-    def _check_input(self, data):
+    @staticmethod
+    def _check_input(data):
         """
         Ensures the input data is in a consistent format.
         """

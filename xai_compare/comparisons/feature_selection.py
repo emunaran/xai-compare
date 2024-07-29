@@ -32,24 +32,29 @@ class FeatureSelection(Comparison):
     A class to evaluate different feature elimination strategies provided by the list of explainers on a specified model.
 
     Attributes:
-    - model (Model): The machine learning model to be evaluated.
-    - data: data
-    - target: labels.
-    - mode (str): The mode of operation for the explainers ('classification', 'regression').
-    - threshold (float): The threshold for feature importance below which features are considered for elimination.
-    - random_state (int): A seed value to ensure reproducibility.
-    - verbose (bool): If True, prints additional information during the function's execution.
+        model (Model): The machine learning model to be evaluated.
+        data (pd.DataFrame): The feature dataset used for model training and explanation.
+        target (Union[pd.DataFrame, pd.Series, np.ndarray]): The target variables associated with the data.
+        mode (str): The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
+        fast_mode (bool): If True, uses a faster but potentially less accurate method for feature importance extraction and elimination.
+        random_state (int): Seed used by the random number generator to ensure reproducibility.
+        verbose (bool): If True, prints additional information during the function's execution.
+        threshold (float): The threshold for feature importance below which features are considered for elimination.
+        metric (Union[str, None]): The evaluation metric used for assessing model performance after feature elimination.
+        default_explainers (List[str]): List of default explainers to be used.
+        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer(s) provided by the user.
     """
 
     def __init__(self,
                  model,
                  data: pd.DataFrame,
                  target: Union[pd.DataFrame, pd.Series, np.ndarray],
-                 mode: str = MODE.REGRESSION, 
-                 random_state: int = 42, 
+                 mode: str = MODE.REGRESSION,
+                 fast_mode: bool = False,
+                 random_state: int = 42,
                  verbose: bool = True,
                  threshold: float = 0.2,
-                 metric: Union[str, None] = None, 
+                 metric: Union[str, None] = None,
                  default_explainers: List[str] = EXPLAINERS,
                  custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None] = None):
         
@@ -69,15 +74,21 @@ class FeatureSelection(Comparison):
             raise TypeError("Default explainers should be a list of strings.")
         if not all(explainer in EXPLAINERS for explainer in default_explainers):
             raise ValueError(f"Some default explainers are not in the allowed EXPLAINERS list: {default_explainers}")
-        if custom_explainer and not isinstance(custom_explainer, (Type[Explainer], list, None)):
+        if custom_explainer and not (
+                isinstance(custom_explainer, Explainer) or
+                issubclass(custom_explainer, Explainer) or
+                isinstance(custom_explainer, list) and all(isinstance(e, Explainer) for e in custom_explainer) or
+                custom_explainer is None):
             raise TypeError("Custom explainer should be an Explainer type, a list of Explainer types, or None.")
         if not isinstance(threshold, (int, float)) or not (0 < threshold <= 1):
             raise ValueError("Threshold should be a float between 0 and 1.")
 
         super().__init__(model, data, target, mode=mode, verbose=verbose, random_state=random_state, 
                          default_explainers=default_explainers, custom_explainer=custom_explainer)
+        self.fast_mode = fast_mode
         self.threshold = threshold
         self.results = {}
+        self.results_dict = None
         self.df_expl_results = None
         self.results_dict_upd = None
         self.X_train, self.y_train, self.X_val, self.y_val, self.X_test, self.y_test = self.train_test_val()
@@ -163,9 +174,10 @@ class FeatureSelection(Comparison):
         results_dict = {}
         for explainer in tqdm(self.list_explainers, desc="Explainers"):
             results_dict[explainer.__name__] = self.evaluate_explainer(explainer)
+
         self.results_dict = results_dict
 
-    def evaluate_explainer(self, explainer): 
+    def evaluate_explainer(self, explainer):
         """
         Evaluates the performance of a machine learning model with progressively fewer features based on the importance
         determined by various explainer methods.
@@ -176,68 +188,89 @@ class FeatureSelection(Comparison):
         Returns:
         - A list containing a list of DataFrames with feature importances and model evaluation results.
         """
-        X_train, X_val, X_test = self.X_train, self.X_val, self.X_test
+        if self.fast_mode:
+            return self._evaluate_explainer_fast_mode(explainer)
+        else:
+            return self._evaluate_explainer_standard_mode(explainer)
 
-        # Clone the model to get unfitted model
-        unfitted_model = self._clone_model()
+    def _evaluate_explainer_standard_mode(self, explainer):
+        X_train, X_val, X_test = self.X_train.copy(), self.X_val.copy(), self.X_test.copy()
+        columns = X_train.columns.tolist()
+        remaining_features = int(len(columns) * self.threshold)
 
-        # Get the list of column names
-        columns = self.X_train.columns.tolist()
-        n = len(columns)
-        remaining_features = n * self.threshold
+        feature_importance_history = []
+        model_evaluation_history = []
 
-        # Initialize variables to store results
-        res_list = [] # list of feature importance
-        list_el_feats = [] # list of least important features
-
-        res_model_eval = []
-
-        current_model = unfitted_model
-
-        # Loop until the number of features is reduced to the desired threshold
         while len(columns) > remaining_features:
-            current_model.fit(X_train, self.y_train)
+            model = self._clone_model()
+            model.fit(X_train, self.y_train)
 
-            # evaluate the model
-            current_model_results = self.evaluate_models(current_model, X_train, self.y_train, X_val, \
-                                                    self.y_val, X_test, self.y_test, self.mode)
-            res_model_eval.append(current_model_results)
-        
-            # Get explainer values
-            explainer_instance = copy.copy(explainer) 
-            explainer_instance = explainer_instance(current_model, X_train, self.y_train)
-            current_importance = run_and_collect_explanations(explainer_instance, X_train, verbose=self.verbose)
+            evaluation_results = self.evaluate_models(
+                model, X_train, self.y_train, X_val, self.y_val, X_test, self.y_test, self.mode)
+            model_evaluation_history.append(evaluation_results)
 
-            # Find the least important feature
-            # Apply absolute value on the global explanation results to get the feature importance for each XAI method.
-            feature_importances = abs(current_importance)
+            explainer_instance = explainer(model, X_train, self.y_train)
+            importances = run_and_collect_explanations(explainer_instance, X_train, verbose=self.verbose)
+            sorted_importances = importances.abs().sort_values(by=importances.columns[0])
 
-            # Sort the list to have the order of the least to the most important features.
-            sorted_feature_importances = feature_importances.sort_values(by=current_importance.columns[0], ascending=True)
-            least_important_feature = sorted_feature_importances.index[0]
-
-            # Log progress
+            least_important_feature = sorted_importances.index[0]
             if self.verbose:
-                print(f'Iteration: {n - len(X_train.columns) + 1}, Removed: {least_important_feature}')
+                print(f'Iteration: {len(X_train.columns)} -> {len(columns)-1}, Removed: {least_important_feature}')
 
-            # results = pd.concat([current_importance, feature_importances_df], axis=1)
-            results = sorted_feature_importances
+            feature_importance_history.append(sorted_importances)
 
-            res_list.append(results) # add feature importance into the list
-
-            list_el_feats.append(least_important_feature)
-
-            # Drop the least important feature
-            X_train = X_train.drop(columns=[least_important_feature])
-            X_val = X_val.drop(columns=[least_important_feature])
-            X_test = X_test.drop(columns=[least_important_feature])
+            X_train.drop(columns=[least_important_feature], inplace=True)
+            X_val.drop(columns=[least_important_feature], inplace=True)
+            X_test.drop(columns=[least_important_feature], inplace=True)
             columns.remove(least_important_feature)
 
-            # Retrain the model with the reduced feature set
-            current_model = unfitted_model
+        return [feature_importance_history, model_evaluation_history]
 
-        # return a list of DataFrames with model evaluation results
-        return [res_list, res_model_eval]
+    def _evaluate_explainer_fast_mode(self, explainer):
+        X_train, X_val, X_test = self.X_train.copy(), self.X_val.copy(), self.X_test.copy()
+        columns = X_train.columns.tolist()
+        remaining_features = int(len(columns) * self.threshold)
+
+        feature_importance_history = []
+        model_evaluation_history = []
+
+        model = self._clone_model()
+        model.fit(X_train, self.y_train)
+
+        evaluation_results = self.evaluate_models(
+            model, X_train, self.y_train, X_val, self.y_val, X_test, self.y_test, self.mode)
+        model_evaluation_history.append(evaluation_results)
+
+        explainer_instance = explainer(model, X_train, self.y_train)
+        importances = run_and_collect_explanations(explainer_instance, X_train, verbose=self.verbose)
+        sorted_importances = importances.abs().sort_values(by=importances.columns[0])
+
+        feature_importance_history.append(sorted_importances)
+
+        while len(columns) > remaining_features:
+            least_important_feature = sorted_importances.index[0]
+
+            X_train.drop(columns=[least_important_feature], inplace=True)
+            X_val.drop(columns=[least_important_feature], inplace=True)
+            X_test.drop(columns=[least_important_feature], inplace=True)
+            columns.remove(least_important_feature)
+            sorted_importances = sorted_importances.drop(index=least_important_feature)
+
+            feature_importance_history.append(sorted_importances)
+
+            if self.verbose:
+                print(f'Iteration: {len(columns)} -> {len(columns)-1}, Eliminated: {least_important_feature}')
+
+            model = self._clone_model()
+            model.fit(X_train, self.y_train)
+
+            evaluation_results = self.evaluate_models(
+                model, X_train, self.y_train, X_val, self.y_val, X_test, self.y_test, self.mode)
+            model_evaluation_history.append(evaluation_results)
+
+        return [feature_importance_history, model_evaluation_history]
+
+
 
     def _clone_model(self):
         """
@@ -275,10 +308,11 @@ class FeatureSelection(Comparison):
         
         return unfitted_model
 
-    def evaluate_models(self, model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
+    @staticmethod
+    def evaluate_models(model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
         """
         Evaluates a model's performance metrics on training, validation, and test datasets.
-        
+
         Parameters:
         - model: The model to evaluate.
         - X_train, y_train: Training data and labels.
@@ -292,37 +326,37 @@ class FeatureSelection(Comparison):
         The function calculates accuracy, precision, recall, and F1 scores for classification mode,
         and mean squared error and mean absolute error for regression mode.
         """
-        res_dict, res_df = {}, None
-        y_pred_train = model.predict(X_train)
-        y_pred_val = model.predict(X_val)
-        y_pred_test = model.predict(X_test)
-        train_tpl = (y_train, y_pred_train, 'train')
-        val_tpl = (y_val, y_pred_val, 'val')
-        test_tpl = (y_test, y_pred_test, 'test')
+        datasets = {
+            'train': (X_train, y_train),
+            'val': (X_val, y_val),
+            'test': (X_test, y_test)
+        }
 
-        for y, y_pred, name in [train_tpl, val_tpl, test_tpl]:
+        res_dict = {}
+        res_df = pd.DataFrame()
+
+        for name, (X, y) in datasets.items():
+            y_pred = model.predict(X)
 
             if mode == MODE.CLASSIFICATION:
-                res_dict['Accuracy'] = accuracy_score(y, y_pred)
-                res_dict['Precision'] = precision_score(y, y_pred)
-                res_dict['Recall'] = recall_score(y, y_pred)
-                res_dict['F1_score'] = f1_score(y, y_pred)
-
+                metrics = {
+                    'Accuracy': accuracy_score(y, y_pred),
+                    'Precision': precision_score(y, y_pred),
+                    'Recall': recall_score(y, y_pred),
+                    'F1_score': f1_score(y, y_pred)
+                }
                 try:
-                    res_dict['AUC'] = roc_auc_score(y, y_pred)
+                    metrics['AUC'] = roc_auc_score(y, y_pred)
                 except:
                     pass
-            
             else:
-                res_dict['MSE'] = mean_squared_error(y, y_pred)
-                res_dict['MAE'] = mean_absolute_error(y, y_pred)
+                metrics = {
+                    'MSE': mean_squared_error(y, y_pred),
+                    'MAE': mean_absolute_error(y, y_pred)
+                }
 
-            tmp_res_df = pd.DataFrame.from_dict(res_dict, orient='index', columns=[name])
-            
-            if res_df is None:
-                res_df = tmp_res_df
-            else:
-                res_df = pd.concat([res_df, tmp_res_df], axis=1)
+            tmp_res_df = pd.DataFrame(metrics, index=[name])
+            res_df = pd.concat([res_df, tmp_res_df.T], axis=1)
 
         return res_df
 
@@ -330,69 +364,69 @@ class FeatureSelection(Comparison):
     def add_best_feature_set(self):
         """
         Appends the best feature set analysis results to each entry in the results dictionary based on a specified metric.
-              
+
         Returns:
-        - results_dict_upd (dict): Updated results dictionary with best feature set analysis appended.
-        
+        - updated_results_dict (dict): Updated results dictionary with best feature set analysis appended.
+
         The function iterates over the results dictionary, applies a best feature set selection based on the specified
         main metric, and appends the results back into the dictionary.
         """
 
-        results_dict_upd = self.results_dict.copy()
+        updated_results_dict = self.results_dict.copy()
 
-        for explnr, results in results_dict_upd.items():
+        for explainer_name, result_data in updated_results_dict.items():
             if self.verbose:
-                print('\033[1m' + explnr.upper() + '\033[0m')
-            results_dict_upd[explnr].append(self.choose_best_feature_set(results[1]))
-            if self.verbose:
-                print()
+                print('\033[1m' + explainer_name.upper() + '\033[0m')
+            best_feature_set = self.choose_best_feature_set(result_data[1])
+            updated_results_dict[explainer_name].append(best_feature_set)
 
-        self.results_dict_upd = results_dict_upd
+        self.results_dict_upd = updated_results_dict
 
-
-    def choose_best_feature_set(self, model_ev_results, data_type='val'):
+    def choose_best_feature_set(self, evaluation_results, data_type='val'):
         """
         Evaluates and visualizes the best feature set based on a provided metric from model evaluation results.
-        
+
         This function calculates the performance metrics for different numbers of features removed and identifies
         the optimal number of features by finding the highest metric value.
 
         Returns:
-        - num_eliminated_feats (int): The number of features suggested to be removed for optimal performance.
+        - optimal_num_features_to_remove (int): The number of features suggested to be removed for optimal performance.
         """
-        tdict = {}
-        for metric in model_ev_results[0].index:
-            metric_list = []
-            for i in range(len(model_ev_results)):
-                metric_list.append(model_ev_results[i].loc[[metric]][data_type].values[0])
-            tdict[metric] = metric_list
-        num_eliminated_feats = np.argmax(tdict[self.metric])
+        metrics_dict = {}
+
+        for metric_name in evaluation_results[0].index:
+            metric_values = []
+            for result in evaluation_results:
+                metric_values.append(result.loc[[metric_name]][data_type].values[0])
+            metrics_dict[metric_name] = metric_values
+
+        optimal_num_features_to_remove = np.argmax(metrics_dict[self.metric])
 
         if self.verbose:
             fig, ax = plt.subplots(figsize=(8, 5))
 
-            tdf = pd.DataFrame(tdict)
+            metrics_df = pd.DataFrame(metrics_dict)
 
-            tdf.plot(ax=ax)
+            metrics_df.plot(ax=ax)
 
-            plt.axvline(x=num_eliminated_feats, color='r', linestyle='--', label='Best feature set')
+            plt.axvline(x=optimal_num_features_to_remove, color='r', linestyle='--', label='Best feature set')
 
             # Set y-axis limits
             ax.set_ylim(0, 1)  # Set the limits of the y-axis to be from 0 to 1
 
             # Set axis labels
-            ax.set_xlabel('Number of Features Eliminated')  
-            ax.set_ylabel('Evaluation Metric Value')      
+            ax.set_xlabel('Number of Features Eliminated')
+            ax.set_ylabel('Evaluation Metric Value')
 
             # Set the plot title
-            ax.set_title('Feature Elimination Analysis') 
+            ax.set_title('Feature Elimination Analysis')
 
             plt.show()
 
-            print(f'{num_eliminated_feats} features are suggested to be removed')
-            print(model_ev_results[num_eliminated_feats])
+            print(f'{optimal_num_features_to_remove} features are suggested to be removed')
+            print(evaluation_results[optimal_num_features_to_remove])
 
-        return num_eliminated_feats  
+        return optimal_num_features_to_remove
 
 
     def plot_feature_selection_outcomes(self):
@@ -410,8 +444,8 @@ class FeatureSelection(Comparison):
         for i, (explnr, results) in enumerate(self.results_dict_upd.items()):
             ax = axs if n_expl == 1 else axs[i]
             results[0][results[2]].plot(kind='barh', ax=ax, legend=False, color='orange', alpha=0.3, edgecolor='#A52A2A')
-            ax.set_title(f'{explnr.upper()}\n feature importance\n Best result with \n{results[2]} features removed\n\
-{len(results[0][results[2]])} features remain')
+            ax.set_title(f'{explnr.upper()}\n feature importance\n Best result with \n{results[2]} features removed\n\ '
+                         f'{len(results[0][results[2]])} features remain')
 
         fig.suptitle('Overall Feature Selection Results', fontsize=16, fontweight='bold')
         plt.tight_layout()
@@ -419,9 +453,7 @@ class FeatureSelection(Comparison):
         plt.show()
 
         # Second plot for the table
-        fig, ax = plt.subplots(figsize=(15, 2)) 
-        
-        
+        fig, ax = plt.subplots(figsize=(15, 2))
         ax.axis('off')
 
         # get result without features elimination

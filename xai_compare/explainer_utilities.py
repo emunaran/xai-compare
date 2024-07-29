@@ -8,6 +8,7 @@
 
 import pandas as pd
 
+
 def run_and_collect_explanations(explainer, X_data, verbose=True) -> pd.DataFrame:
     """
     Executes global explanation methods provided by the specified explainer on the given dataset, collecting the results.

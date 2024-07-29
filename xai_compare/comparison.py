@@ -78,7 +78,11 @@ class Comparison(ABC):
             raise TypeError("Default explainers should be a list of strings.")
         if not all(explainer in EXPLAINERS for explainer in default_explainers):
             raise ValueError(f"Some default explainers are not in the allowed EXPLAINERS list: {default_explainers}")
-        if custom_explainer and not isinstance(custom_explainer, (Type[Explainer], list, None)):
+        if custom_explainer and not (
+                isinstance(custom_explainer, Explainer) or
+                issubclass(custom_explainer, Explainer) or
+                isinstance(custom_explainer, list) and all(isinstance(e, Explainer) for e in custom_explainer) or
+                custom_explainer is None):
             raise TypeError("Custom explainer should be an Explainer type, a list of Explainer types, or None.")
 
         self.model = model
@@ -90,7 +94,6 @@ class Comparison(ABC):
         self.default_explainers = default_explainers
         self.list_explainers = self.create_list_explainers(custom_explainer)
 
-        
     def create_list_explainers(self, custom_explainer: Union[Type[Explainer], List[Type[Explainer]], None]) -> List[Explainer]:
         """
         Creates a list of explainer classes from default and custom explainers.
