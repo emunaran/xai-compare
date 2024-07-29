@@ -308,10 +308,11 @@ class FeatureSelection(Comparison):
         
         return unfitted_model
 
-    def evaluate_models(self, model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
+    @staticmethod
+    def evaluate_models(model, X_train, y_train, X_val, y_val, X_test, y_test, mode):
         """
         Evaluates a model's performance metrics on training, validation, and test datasets.
-        
+
         Parameters:
         - model: The model to evaluate.
         - X_train, y_train: Training data and labels.
@@ -325,103 +326,108 @@ class FeatureSelection(Comparison):
         The function calculates accuracy, precision, recall, and F1 scores for classification mode,
         and mean squared error and mean absolute error for regression mode.
         """
-        res_dict, res_df = {}, None
-        y_pred_train = model.predict(X_train)
-        y_pred_val = model.predict(X_val)
-        y_pred_test = model.predict(X_test)
-        train_tpl = (y_train, y_pred_train, 'train')
-        val_tpl = (y_val, y_pred_val, 'val')
-        test_tpl = (y_test, y_pred_test, 'test')
+        datasets = {
+            'train': (X_train, y_train),
+            'val': (X_val, y_val),
+            'test': (X_test, y_test)
+        }
 
-        for y, y_pred, name in [train_tpl, val_tpl, test_tpl]:
+        res_dict = {}
+        res_df = pd.DataFrame()
+
+        for name, (X, y) in datasets.items():
+            y_pred = model.predict(X)
 
             if mode == MODE.CLASSIFICATION:
-                res_dict['Accuracy'] = accuracy_score(y, y_pred)
-                res_dict['Precision'] = precision_score(y, y_pred)
-                res_dict['Recall'] = recall_score(y, y_pred)
-                res_dict['F1_score'] = f1_score(y, y_pred)
-
+                metrics = {
+                    'Accuracy': accuracy_score(y, y_pred),
+                    'Precision': precision_score(y, y_pred),
+                    'Recall': recall_score(y, y_pred),
+                    'F1_score': f1_score(y, y_pred)
+                }
                 try:
-                    res_dict['AUC'] = roc_auc_score(y, y_pred)
+                    metrics['AUC'] = roc_auc_score(y, y_pred)
                 except:
                     pass
-            
             else:
-                res_dict['MSE'] = mean_squared_error(y, y_pred)
-                res_dict['MAE'] = mean_absolute_error(y, y_pred)
+                metrics = {
+                    'MSE': mean_squared_error(y, y_pred),
+                    'MAE': mean_absolute_error(y, y_pred)
+                }
 
-            tmp_res_df = pd.DataFrame.from_dict(res_dict, orient='index', columns=[name])
-            
-            if res_df is None:
-                res_df = tmp_res_df
-            else:
-                res_df = pd.concat([res_df, tmp_res_df], axis=1)
+            tmp_res_df = pd.DataFrame(metrics, index=[name])
+            res_df = pd.concat([res_df, tmp_res_df.T], axis=1)
 
         return res_df
+
 
     def add_best_feature_set(self):
         """
         Appends the best feature set analysis results to each entry in the results dictionary based on a specified metric.
-              
+
         Returns:
-        - results_dict_upd (dict): Updated results dictionary with best feature set analysis appended.
-        
+        - updated_results_dict (dict): Updated results dictionary with best feature set analysis appended.
+
         The function iterates over the results dictionary, applies a best feature set selection based on the specified
         main metric, and appends the results back into the dictionary.
         """
 
-        results_dict_upd = self.results_dict.copy()
+        updated_results_dict = self.results_dict.copy()
 
-        for explnr, results in results_dict_upd.items():
+        for explainer_name, result_data in updated_results_dict.items():
             if self.verbose:
-                print('\033[1m' + explnr.upper() + '\033[0m')
-            results_dict_upd[explnr].append(self.choose_best_feature_set(results[1]))
+                print('\033[1m' + explainer_name.upper() + '\033[0m')
+            best_feature_set = self.choose_best_feature_set(result_data[1])
+            updated_results_dict[explainer_name].append(best_feature_set)
 
-        self.results_dict_upd = results_dict_upd
+        self.results_dict_upd = updated_results_dict
 
-    def choose_best_feature_set(self, model_ev_results, data_type='val'):
+    def choose_best_feature_set(self, evaluation_results, data_type='val'):
         """
         Evaluates and visualizes the best feature set based on a provided metric from model evaluation results.
-        
+
         This function calculates the performance metrics for different numbers of features removed and identifies
         the optimal number of features by finding the highest metric value.
 
         Returns:
-        - num_eliminated_feats (int): The number of features suggested to be removed for optimal performance.
+        - optimal_num_features_to_remove (int): The number of features suggested to be removed for optimal performance.
         """
-        tdict = {}
-        for metric in model_ev_results[0].index:
-            metric_list = []
-            for i in range(len(model_ev_results)):
-                metric_list.append(model_ev_results[i].loc[[metric]][data_type].values[0])
-            tdict[metric] = metric_list
-        num_eliminated_feats = np.argmax(tdict[self.metric])
+        metrics_dict = {}
+
+        for metric_name in evaluation_results[0].index:
+            metric_values = []
+            for result in evaluation_results:
+                metric_values.append(result.loc[[metric_name]][data_type].values[0])
+            metrics_dict[metric_name] = metric_values
+
+        optimal_num_features_to_remove = np.argmax(metrics_dict[self.metric])
 
         if self.verbose:
             fig, ax = plt.subplots(figsize=(8, 5))
 
-            tdf = pd.DataFrame(tdict)
+            metrics_df = pd.DataFrame(metrics_dict)
 
-            tdf.plot(ax=ax)
+            metrics_df.plot(ax=ax)
 
-            plt.axvline(x=num_eliminated_feats, color='r', linestyle='--', label='Best feature set')
+            plt.axvline(x=optimal_num_features_to_remove, color='r', linestyle='--', label='Best feature set')
 
             # Set y-axis limits
             ax.set_ylim(0, 1)  # Set the limits of the y-axis to be from 0 to 1
 
             # Set axis labels
-            ax.set_xlabel('Number of Features Eliminated')  
-            ax.set_ylabel('Evaluation Metric Value')      
+            ax.set_xlabel('Number of Features Eliminated')
+            ax.set_ylabel('Evaluation Metric Value')
 
             # Set the plot title
-            ax.set_title('Feature Elimination Analysis') 
+            ax.set_title('Feature Elimination Analysis')
 
             plt.show()
 
-            print(f'{num_eliminated_feats} features are suggested to be removed')
-            print(model_ev_results[num_eliminated_feats])
+            print(f'{optimal_num_features_to_remove} features are suggested to be removed')
+            print(evaluation_results[optimal_num_features_to_remove])
 
-        return num_eliminated_feats
+        return optimal_num_features_to_remove
+
 
     def plot_feature_selection_outcomes(self):
         """
