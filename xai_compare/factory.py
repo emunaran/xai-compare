@@ -177,7 +177,7 @@ class ComparisonFactory:
             # Importing locally to avoid circular dependency
             from xai_compare.comparisons import FeatureSelection
             if self.model:
-                    feature_selectionTchn = FeatureSelection(model=self.model,
+                    feature_selection_comparison = FeatureSelection(model=self.model,
                                                              data=self.data,
                                                              target=self.y,
                                                              custom_explainer=self.custom_explainer,
@@ -189,13 +189,13 @@ class ComparisonFactory:
                                                              default_explainers=self.default_explainers)
                     
             else:
-                feature_selectionTchn = FeatureSelection
-            return feature_selectionTchn
+                feature_selection_comparison = FeatureSelection
+            return feature_selection_comparison
         elif comparison_type == "consistency":
             # Importing locally to avoid circular dependency
             from xai_compare.comparisons import Consistency
             if self.model:
-                consistencyTchn = Consistency(model=self.model,
+                consistency_comparison = Consistency(model=self.model,
                                               data=self.data,
                                               target=self.y,
                                               custom_explainer=self.custom_explainer,
@@ -205,8 +205,8 @@ class ComparisonFactory:
                                               n_splits=self.n_splits,
                                               default_explainers=self.default_explainers)
             else:
-                consistencyTchn = Consistency
-            return consistencyTchn
+                consistency_comparison = Consistency
+            return consistency_comparison
         
         # If there are more Comparison Techniques you want to account for, the code can be added here:
         

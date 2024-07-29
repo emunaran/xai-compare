@@ -32,13 +32,17 @@ class FeatureSelection(Comparison):
     A class to evaluate different feature elimination strategies provided by the list of explainers on a specified model.
 
     Attributes:
-    - model (Model): The machine learning model to be evaluated.
-    - data: data
-    - target: labels.
-    - mode (str): The mode of operation for the explainers ('classification', 'regression').
-    - threshold (float): The threshold for feature importance below which features are considered for elimination.
-    - random_state (int): A seed value to ensure reproducibility.
-    - verbose (bool): If True, prints additional information during the function's execution.
+        model (Model): The machine learning model to be evaluated.
+        data (pd.DataFrame): The feature dataset used for model training and explanation.
+        target (Union[pd.DataFrame, pd.Series, np.ndarray]): The target variables associated with the data.
+        mode (str): The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
+        fast_mode (bool): If True, uses a faster but potentially less accurate method for feature importance extraction and elimination.
+        random_state (int): Seed used by the random number generator to ensure reproducibility.
+        verbose (bool): If True, prints additional information during the function's execution.
+        threshold (float): The threshold for feature importance below which features are considered for elimination.
+        metric (Union[str, None]): The evaluation metric used for assessing model performance after feature elimination.
+        default_explainers (List[str]): List of default explainers to be used.
+        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer(s) provided by the user.
     """
 
     def __init__(self,
