@@ -15,7 +15,7 @@ from typing import Union, List, Type
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
 from xai_compare.factories.factory import ExplainerFactory
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 
 
 class Comparison(ABC):
