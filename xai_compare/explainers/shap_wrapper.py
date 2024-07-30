@@ -8,17 +8,21 @@ import numpy as np
 import shap as sh
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 
 
 class SHAP(Explainer):
     """
     A class that encapsulates the SHAP (SHapley Additive exPlanations) method for explaining model predictions.
     The method is detailed in the paper "A Unified Approach to Interpreting Model Predictions"
-    (https://arxiv.org/pdf/1705.07874)
+    (https://arxiv.org/pdf/1705.07874).
 
     Attributes:
-        model: An input machine learning model.
+        model:
+            An input machine learning model.
+
+        mode (str):
+            Indicates whether the explainer is used for 'regression' or 'classification'.
     """
 
     __name__ = "SHAP"
@@ -27,12 +31,15 @@ class SHAP(Explainer):
         """
         Generates global SHAP values (average) for the features in the dataset.
 
-        Parameters:
-            x_data (pd.DataFrame): DataFrame containing the feature data.
+        Attributes:
+            x_data (pd.DataFrame):
+                DataFrame containing the feature data.
 
         Returns:
-            pd.DataFrame: DataFrame of average SHAP values for each feature.
+            pd.DataFrame:
+                DataFrame of average SHAP values for each feature.
         """
+
         shap_values = self.explain_local(x_data)
         shap_mean = np.mean(shap_values, axis=0)
         return pd.DataFrame(shap_mean, index=x_data.columns, columns=['SHAP Value'])
@@ -41,12 +48,15 @@ class SHAP(Explainer):
         """
         Selects an appropriate SHAP explainer based on the model type.
 
-        Parameters:
-            model_type (str): A string describing the type of the model.
+        Attributes:
+            model_type (str):
+                A string describing the type of the model.
 
         Returns:
-            sh.Explainer: A SHAP Explainer class or None if no appropriate explainer is found.
+            sh.Explainer:
+                A SHAP Explainer class or None if no appropriate explainer is found.
         """
+
         model_type = model_type.lower()
 
         if "tree" in model_type or "forest" in model_type or "xgb" in model_type:
@@ -60,12 +70,15 @@ class SHAP(Explainer):
         """
         Generates local SHAP values for the given data points.
 
-        Parameters:
-            x_data (pd.DataFrame): DataFrame containing the feature data.
+        Attributes:
+            x_data (pd.DataFrame):
+                DataFrame containing the feature data.
 
         Returns:
-            pd.DataFrame: DataFrame of SHAP values for each feature and data point.
+            pd.DataFrame:
+                DataFrame of SHAP values for each feature and data point.
         """
+
         explainer_class = self.choose_explainer(type(self.model).__name__)
 
         background = sh.kmeans(x_data, 5).data if explainer_class.__name__ != "LinearExplainer" else x_data

@@ -7,7 +7,6 @@
 #
 # ------------------------------------------------------------------------------------------------------
 
-import copy
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -21,28 +20,48 @@ import xgboost as xgb
 
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
-from xai_compare.comparison import Comparison
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.comparison import Comparison
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.explainer_utilities import run_and_collect_explanations
 
 
 class FeatureSelection(Comparison):
-
     """
     A class to evaluate different feature elimination strategies provided by the list of explainers on a specified model.
 
     Attributes:
-        model (Model): The machine learning model to be evaluated.
-        data (pd.DataFrame): The feature dataset used for model training and explanation.
-        target (Union[pd.DataFrame, pd.Series, np.ndarray]): The target variables associated with the data.
-        mode (str): The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
-        fast_mode (bool): If True, uses a faster but potentially less accurate method for feature importance extraction and elimination.
-        random_state (int): Seed used by the random number generator to ensure reproducibility.
-        verbose (bool): If True, prints additional information during the function's execution.
-        threshold (float): The threshold for feature importance below which features are considered for elimination.
-        metric (Union[str, None]): The evaluation metric used for assessing model performance after feature elimination.
-        default_explainers (List[str]): List of default explainers to be used.
-        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer(s) provided by the user.
+        model (Model):
+            The machine learning model to be evaluated.
+
+        data (pd.DataFrame):
+            The feature dataset used for model training and explanation.
+
+        target (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            The target variables associated with the data.
+
+        mode (str):
+            The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
+
+        fast_mode (bool):
+            If True, uses a faster but potentially less accurate method for feature importance extraction and elimination.
+
+        random_state (int):
+            Seed used by the random number generator to ensure reproducibility.
+
+        verbose (bool):
+            If True, prints additional information during the function's execution.
+
+        threshold (float):
+            The threshold for feature importance below which features are considered for elimination.
+
+        metric (Union[str, None]):
+            The evaluation metric used for assessing model performance after feature elimination.
+
+        default_explainers (List[str]):
+            List of default explainers to be used.
+
+        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]):
+            Custom explainer(s) provided by the user.
     """
 
     def __init__(self,
@@ -112,20 +131,29 @@ class FeatureSelection(Comparison):
         It uses a stratified split to maintain the distribution of the target variable across the sets.
 
         Returns:
-        -------
-        tuple:
-            - X_train (pd.DataFrame): Training features.
-            - y_train (Union[pd.DataFrame, pd.Series, np.ndarray]): Training target.
-            - X_val (pd.DataFrame): Validation features.
-            - y_val (Union[pd.DataFrame, pd.Series, np.ndarray]): Validation target.
-            - X_test (pd.DataFrame): Testing features.
-            - y_test (Union[pd.DataFrame, pd.Series, np.ndarray]): Testing target.
+            tuple:
+                - X_train (pd.DataFrame):
+                    Training features.
+                - y_train (Union[pd.DataFrame, pd.Series, np.ndarray]):
+                    Training target.
+                - X_val (pd.DataFrame):
+                    Validation features.
+                - y_val (Union[pd.DataFrame, pd.Series, np.ndarray]):
+                    Validation target.
+                - X_test (pd.DataFrame):
+                    Testing features.
+                - y_test (Union[pd.DataFrame, pd.Series, np.ndarray]):
+                    Testing target.
         """
         X_train, X_tmp, y_train, y_tmp = train_test_split(self.data, self.y, test_size=0.5, random_state=self.random_state)  
         X_val, X_test, y_val, y_test = train_test_split(X_tmp, y_tmp, test_size=0.4, random_state=self.random_state)  
         return X_train, y_train, X_val, y_val, X_test, y_test
 
     def apply(self):
+        """
+        Applies feature elimination and updates the results dictionary with the best feature set analysis.
+        """
+
         if self.results_dict_upd is None:
             self.get_feature_elimination_results()
             self.add_best_feature_set()
@@ -133,6 +161,10 @@ class FeatureSelection(Comparison):
             pass
 
     def display(self):
+        """
+        Displays the results of feature selection through visualizations.
+        This method generates plots to visualize the outcomes of feature selection, including feature importances and other relevant metrics.
+        """
         self.plot_feature_selection_outcomes()
 
     def best_result(self):
@@ -140,9 +172,9 @@ class FeatureSelection(Comparison):
         Determines the best feature set based on the specified metric and optionally visualizes the results.
 
         Returns:
-        -------
-        The maximum value of the specified evaluation metric across all explainer results,
-        indicating the best feature set performance.
+            float:
+                The maximum value of the specified evaluation metric across all explainer results,
+                indicating the best feature set performance.
         """
         if self.results_dict_upd:
             df_expl_results = round(list(self.results_dict_upd.values())[0][1][0]['test'], 4)
@@ -164,12 +196,13 @@ class FeatureSelection(Comparison):
     def get_feature_elimination_results(self):
         """
         Evaluates different feature elimination strategies provided by the list of explainers on a specified model.
-        
-        Each explainer is used to assess the importance of features, and based on that, evaluate the model's performance 
+
+        Each explainer is used to assess the importance of features, and based on that, evaluate the model's performance
         with progressively eliminated features.
 
         Returns:
-        - results_dict (dict): A dictionary containing the results from each explainer.
+            dict:
+                A dictionary containing the results from each explainer.
         """
         results_dict = {}
         for explainer in tqdm(self.list_explainers, desc="Explainers"):
@@ -186,7 +219,8 @@ class FeatureSelection(Comparison):
         until the number of features is reduced to the desired threshold.
 
         Returns:
-        - A list containing a list of DataFrames with feature importances and model evaluation results.
+            list:
+                A list containing a list of DataFrames with feature importances and model evaluation results.
         """
         if self.fast_mode:
             return self._evaluate_explainer_fast_mode(explainer)
@@ -194,6 +228,31 @@ class FeatureSelection(Comparison):
             return self._evaluate_explainer_standard_mode(explainer)
 
     def _evaluate_explainer_standard_mode(self, explainer):
+        """
+        Evaluates the performance of a model using an explainer in standard mode with progressively fewer features.
+
+        This method performs the following steps:
+            1. Copies the training, validation, and test datasets.
+            2. Determines the number of features to retain based on the specified threshold.
+            3. Iteratively removes the least important feature as determined by the explainer.
+            4. Evaluates the model performance after each feature removal.
+            5. Records feature importances and model evaluation results at each step.
+
+        Parameters:
+            explainer (Type[Explainer]): An explainer class or function used to determine feature importances.
+
+        Returns:
+            list:
+                A list containing two elements:
+                    - `feature_importance_history` (list of pd.DataFrame): A list of DataFrames where each DataFrame contains feature importances after each iteration.
+                    - `model_evaluation_history` (list of dict): A list of dictionaries where each dictionary contains model evaluation results after each iteration.
+
+        Notes:
+            The method assumes the presence of methods like `_clone_model`, `evaluate_models`, and `run_and_collect_explanations`,
+            and requires `self.X_train`, `self.X_val`, `self.X_test`, `self.y_train`, `self.y_val`, `self.y_test`, `self.mode`, and `self.verbose`.
+
+        """
+
         X_train, X_val, X_test = self.X_train.copy(), self.X_val.copy(), self.X_test.copy()
         columns = X_train.columns.tolist()
         remaining_features = int(len(columns) * self.threshold)
@@ -227,6 +286,32 @@ class FeatureSelection(Comparison):
         return [feature_importance_history, model_evaluation_history]
 
     def _evaluate_explainer_fast_mode(self, explainer):
+        """
+        Evaluates the performance of a model using an explainer in fast mode with progressively fewer features.
+
+        This method performs the following steps:
+            1. Copies the training, validation, and test datasets.
+            2. Determines the number of features to retain based on the specified threshold.
+            3. Fits the model with the full set of features and evaluates its performance.
+            4. Calculates and records the initial feature importances.
+            5. Iteratively removes the least important feature, updates the datasets, and re-evaluates the model performance.
+            6. Records feature importances and model evaluation results at each step.
+
+        Parameters:
+            explainer (Type[Explainer]): An explainer class or function used to determine feature importances.
+
+        Returns:
+            list:
+                A list containing two elements:
+                    - `feature_importance_history` (list of pd.DataFrame): A list of DataFrames where each DataFrame contains feature importances after each iteration.
+                    - `model_evaluation_history` (list of dict): A list of dictionaries where each dictionary contains model evaluation results after each iteration.
+
+        Notes:
+            The method assumes the presence of methods like `_clone_model`, `evaluate_models`, and `run_and_collect_explanations`,
+            and requires `self.X_train`, `self.X_val`, `self.X_test`, `self.y_train`, `self.y_val`, `self.y_test`, `self.mode`, and `self.verbose`.
+
+        """
+
         X_train, X_val, X_test = self.X_train.copy(), self.X_val.copy(), self.X_test.copy()
         columns = X_train.columns.tolist()
         remaining_features = int(len(columns) * self.threshold)
@@ -277,7 +362,8 @@ class FeatureSelection(Comparison):
         Clones a model based on its type.
         
         Returns:
-        - cloned_model: The cloned model.
+            object:
+                The cloned model.
         """
         class XGBClassifierWrapper(xgb.XGBClassifier):
             def __init__(self, verbose=False, **kwargs):
@@ -314,18 +400,32 @@ class FeatureSelection(Comparison):
         Evaluates a model's performance metrics on training, validation, and test datasets.
 
         Parameters:
-        - model: The model to evaluate.
-        - X_train, y_train: Training data and labels.
-        - X_val, y_val: Validation data and labels.
-        - X_test, y_test: Test data and labels.
-        - mode (str): Operation mode, 'classification' or 'regression'.
+            model:
+                The model to evaluate.
+            X_train (pd.DataFrame):
+                Training features.
+            y_train (Union[pd.DataFrame, pd.Series, np.ndarray]):
+                Training labels.
+            X_val (pd.DataFrame):
+                Validation features.
+            y_val (Union[pd.DataFrame, pd.Series, np.ndarray]):
+                Validation labels.
+            X_test (pd.DataFrame):
+                Test features.
+            y_test (Union[pd.DataFrame, pd.Series, np.ndarray]):
+                Test labels.
+            mode (str):
+                Operation mode, 'classification' or 'regression'.
 
         Returns:
-        - res_df (DataFrame): A DataFrame containing performance metrics for each dataset.
+            pd.DataFrame:
+                A DataFrame containing performance metrics for each dataset.
 
-        The function calculates accuracy, precision, recall, and F1 scores for classification mode,
-        and mean squared error and mean absolute error for regression mode.
+        Notes:
+            The function calculates accuracy, precision, recall, and F1 scores for classification mode,
+            and mean squared error and mean absolute error for regression mode.
         """
+
         datasets = {
             'train': (X_train, y_train),
             'val': (X_val, y_val),
@@ -366,10 +466,12 @@ class FeatureSelection(Comparison):
         Appends the best feature set analysis results to each entry in the results dictionary based on a specified metric.
 
         Returns:
-        - updated_results_dict (dict): Updated results dictionary with best feature set analysis appended.
+            dict:
+                Updated results dictionary with best feature set analysis appended.
 
-        The function iterates over the results dictionary, applies a best feature set selection based on the specified
-        main metric, and appends the results back into the dictionary.
+        Notes:
+            The function iterates over the results dictionary, applies a best feature set selection based on the specified
+            main metric, and appends the results back into the dictionary.
         """
 
         updated_results_dict = self.results_dict.copy()
@@ -386,12 +488,14 @@ class FeatureSelection(Comparison):
         """
         Evaluates and visualizes the best feature set based on a provided metric from model evaluation results.
 
-        This function calculates the performance metrics for different numbers of features removed and identifies
+        This function calculates performance metrics for different numbers of features removed and identifies
         the optimal number of features by finding the highest metric value.
 
         Returns:
-        - optimal_num_features_to_remove (int): The number of features suggested to be removed for optimal performance.
+            int:
+                The number of features suggested to be removed for optimal performance.
         """
+
         metrics_dict = {}
 
         for metric_name in evaluation_results[0].index:
@@ -431,9 +535,11 @@ class FeatureSelection(Comparison):
 
     def plot_feature_selection_outcomes(self):
         """
-        This function generate visualization of performance metrics for selected feature sets evaluated on the test set.
+        Generates visualizations of performance metrics for selected feature sets evaluated on the test set.
 
-        This function creates two sets of plots: bar charts for feature importance and a table of metrics.
+        This function creates two types of visualizations:
+            - Bar charts for feature importance.
+            - A table of performance metrics.
         """
 
         n_expl = len(self.results_dict_upd)

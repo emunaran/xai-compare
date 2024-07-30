@@ -10,7 +10,7 @@ import numpy as np
 from typing import Union
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.config import MODE
 
 

@@ -10,24 +10,35 @@ from typing import Union
 from sklearn.metrics import accuracy_score, mean_squared_error
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.config import MODE
 
 
 class Permutations(Explainer):
     """
     A class that encapsulates the Permutation Feature Importance method for explaining model predictions.
-    Further details can be found in the literature, such as in the book "Interpretable Machine Learning" 
+    Further details can be found in the literature, such as in the book "Interpretable Machine Learning"
     by Christoph Molnar, which discusses various interpretation methods including permutation importance.
     (https://christophm.github.io/interpretable-ml-book/feature-importance.html)
 
     Attributes:
-        model: An input machine learning model.
-        X_train (pd.DataFrame): Training data features.
-        y_train (Union[pd.DataFrame, pd.Series, np.ndarray]): Training data labels.
-        mode (str): Indicates whether the explainer is used for 'regression' or 'classification'.
-        num_permutations (int): Number of permutations to perform for each feature.
-        random_state (Union[int, None]): Seed for the random number generator.
+        model:
+            An input machine learning model.
+
+        X_train (pd.DataFrame):
+            Training data features.
+
+        y_train (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            Training data labels.
+
+        mode (str):
+            Indicates whether the explainer is used for 'regression' or 'classification'.
+
+        num_permutations (int):
+            Number of permutations to perform for each feature.
+
+        random_state (Union[int, None]):
+            Seed for the random number generator.
     """
 
     __name__ = "permutations"
@@ -49,11 +60,13 @@ class Permutations(Explainer):
         """
         Calculates permutation feature importance for a given model.
 
-        Parameters:
-            X_data (pd.DataFrame): The feature matrix.
+        Attributes:
+            X_data (pd.DataFrame):
+                The feature matrix for which permutation importance is calculated.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the feature names and their mean importance.
+            pd.DataFrame:
+                A DataFrame containing the feature names and their mean importance.
         """
         np.random.seed(self.random_state)
 
@@ -90,5 +103,12 @@ class Permutations(Explainer):
     def explain_local(self, X_data: pd.DataFrame) -> pd.DataFrame:
         """
         This function is not applicable for permutation feature importance as it is a global method.
+
+        Attributes:
+            Not applicable.
+
+        Returns:
+            None:
+                This function does not return any value.
         """
         raise NotImplementedError("The explain_local method is not applicable for permutation feature importance.")

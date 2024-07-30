@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='xai-compare',  # This will be the short name used for pip install
-    version='0.1.0',
+    version='0.1.1',
     author='Ran Emuna',
     author_email='emuna.ran@gmail.com',
     description='This repository aims to provide tools for comparing different explainability methods, enhancing the '

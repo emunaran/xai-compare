@@ -17,15 +17,27 @@ class Explainer(ABC):
     An abstract base class for creating explainers that can interpret the predictions made by machine learning models.
 
     Attributes:
-        model: A machine learning model which predictions are to be interpreted.
-        X_train (pd.DataFrame): Training data used to fit the model.
-        y_train (Union[pd.DataFrame, pd.Series, np.ndarray]): Training labels or targets.
-        y_pred (Union[pd.DataFrame, pd.Series, np.ndarray, None], optional): Predicted values. Defaults to None.
-        mode (str): The mode of the explainer which could be 'regression' or 'classification' from config.py.
+        model:
+            A machine learning model whose predictions are to be interpreted.
+
+        X_train (pd.DataFrame):
+            Training data used to fit the model.
+
+        y_train (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            Training labels or targets.
+
+        y_pred (Union[pd.DataFrame, pd.Series, np.ndarray, None], optional):
+            Predicted values. Defaults to None.
+
+        mode (str):
+            The mode of the explainer, which could be 'regression' or 'classification' from config.py.
 
     Methods:
-        explain_global(x_data: pd.DataFrame) -> pd.DataFrame: Abstract method to compute global explanations.
-        explain_local(x_data: pd.DataFrame) -> pd.DataFrame: Abstract method to compute local explanations.
+        explain_global(x_data: pd.DataFrame) -> pd.DataFrame:
+            Abstract method to compute global explanations.
+
+        explain_local(x_data: pd.DataFrame) -> pd.DataFrame:
+            Abstract method to compute local explanations.
     """
 
     def __init__(self,
@@ -56,12 +68,15 @@ class Explainer(ABC):
         """
         Generates a global explanation of the model predictions over the entire dataset.
 
-        Parameters:
-            x_data (pd.DataFrame): Dataset for which the global explanation is required.
+        Attributes:
+            x_data (pd.DataFrame):
+                Dataset for which the global explanation is required.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the global explanation results.
+            pd.DataFrame:
+                A DataFrame containing the global explanation results.
         """
+
         pass
 
     @abstractmethod
@@ -69,10 +84,13 @@ class Explainer(ABC):
         """
         Generates a local explanation of the model predictions for individual samples.
 
-        Parameters:
-            x_data (pd.DataFrame): Dataset for which local explanations are required.
+        Attributes:
+            x_data (pd.DataFrame):
+                Dataset for which local explanations are required.
 
         Returns:
-            pd.DataFrame: A DataFrame containing the local explanation results for each sample.
+            pd.DataFrame:
+                A DataFrame containing the local explanation results for each sample.
         """
+
         pass

@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.config import MODE
 
 import warnings
@@ -19,12 +19,15 @@ warnings.filterwarnings("ignore", category=UserWarning, message=".*X does not ha
 class LIME(Explainer):
     """
     A class that encapsulates the LIME (Local Interpretable Model-agnostic Explanations) method for explaining model predictions.
-    The method is presented in the paper "Why Should I Trust You?": Explaining the Predictions of Any Classifier
-    (https://arxiv.org/pdf/1602.04938).
+
+    The method is detailed in the paper "Why Should I Trust You? Explaining the Predictions of Any Classifier" (https://arxiv.org/pdf/1602.04938).
 
     Attributes:
-        model: An input machine learning model.
-        mode (str): Indicates whether the explainer is used for 'regression' or 'classification'.
+        model:
+            The machine learning model to be explained.
+
+        mode (str):
+            Indicates whether the explainer is used for 'regression' or 'classification'.
     """
 
     __name__ = "LIME"
@@ -33,11 +36,13 @@ class LIME(Explainer):
         """
         Provides a global explanation of the model by averaging the local explanations across all instances.
 
-        Parameters:
-            X_data (pd.DataFrame): The dataset for which global explanations are generated.
+        Attributes:
+            X_data (pd.DataFrame):
+                The dataset for which global explanations are generated.
 
         Returns:
-            pd.DataFrame: A DataFrame containing global importance scores for each feature.
+            pd.DataFrame:
+                A DataFrame containing global importance scores for each feature.
         """
         local_exps = self.explain_local(X_data)
         # Calculate the mean across rows to get the average effect of each feature globally
@@ -49,12 +54,15 @@ class LIME(Explainer):
         """
         Provides local explanations for each instance in the dataset, explaining the contribution of each feature to the individual prediction.
 
-        Parameters:
-            X_data (pd.DataFrame): The dataset for which local explanations are generated.
+        Attributes:
+            X_data (pd.DataFrame):
+                The dataset for which local explanations are generated.
 
         Returns:
-            pd.DataFrame: A DataFrame where each row represents an instance with feature contributions for that specific prediction.
+            pd.DataFrame:
+                A DataFrame where each row represents an instance with feature contributions for that specific prediction.
         """
+
         # Initialize the LIME explainer for tabular data
         explainer = lime.lime_tabular.LimeTabularExplainer(
             training_data=X_data.values,
