@@ -1,5 +1,5 @@
 <div align="center">
-    <img src="docs/images/xai-compare_logo.png" alt="Logo" width="200"/>
+    <img src="https://raw.githubusercontent.com/emunaran/xai-compare/main/docs/images/xai-compare_logo.png" alt="Logo" width="200"/>
 </div>
 
 ---
@@ -51,7 +51,7 @@ The FeatureSelection class in `xai-compare` is a robust tool for optimizing mach
 
 
 <div align="center">
-    <img src="docs/images/Feature_selection_wf.png" alt="Feature Selection Workflow" width="700"/>
+    <img src="https://github.com/emunaran/xai-compare/raw/main/docs/images/Feature_selection_wf.png" alt="Feature Selection Workflow" width="700"/>
     <p style="color: #808080;">Feature Selection Workflow</p>
 </div>
 
@@ -60,7 +60,7 @@ The FeatureSelection class in `xai-compare` is a robust tool for optimizing mach
 The Consistency class assesses the stability and reliability of explanations provided by various explainers across different splits of data. This class is crucial for determining whether the insights provided by model explainers are consistent regardless of data variances. 
 
 <div align="center">
-    <img src="docs/images/Consistency_wf.png" alt="Consistency Measurement Workflow" width="700"/>
+    <img src="https://github.com/emunaran/xai-compare/raw/main/docs/images/Consistency_wf.png" alt="Consistency Measurement Workflow" width="700"/>
     <p style="color: #808080;">Consistency Measurement Workflow</p>
 </div>
 
@@ -68,10 +68,10 @@ The Consistency class assesses the stability and reliability of explanations pro
 ## Sample notebooks
 The notebooks below demonstrate different use cases for `xai-compare` package. For hands-on experience and to explore the notebooks in detail, visit the notebooks directory in the repository.
 
-[Feature Selection Test Notebook](
+[Feature Selection Comparison Notebook](
 xai_compare/demo_notebooks/comparison_feature_selection.ipynb)
 
-[Consistency Test Notebook](
+[Consistency Comparison Notebook](
 xai_compare/demo_notebooks/comparison_consistency.ipynb)
 
 [Main Demo Notebook](
