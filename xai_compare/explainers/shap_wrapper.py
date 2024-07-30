@@ -8,7 +8,7 @@ import numpy as np
 import shap as sh
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 
 
 class SHAP(Explainer):

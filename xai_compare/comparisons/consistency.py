@@ -18,9 +18,9 @@ from sklearn.model_selection import KFold, StratifiedKFold
 
 # Local application imports
 from xai_compare.config import MODE, EXPLAINERS
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.explainer_utilities import run_and_collect_explanations
-from xai_compare.comparison import Comparison
+from xai_compare.abstract.comparison import Comparison
 
 
 class Consistency(Comparison):

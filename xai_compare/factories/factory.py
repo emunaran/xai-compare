@@ -11,7 +11,7 @@ import pandas as pd
 import numpy as np
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.explainers.lime_wrapper import LIME
 from xai_compare.explainers.shap_wrapper import SHAP
 from xai_compare.explainers.permutation_wrapper import Permutations

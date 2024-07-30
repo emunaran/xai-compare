@@ -10,7 +10,7 @@ from typing import Union
 from sklearn.metrics import accuracy_score, mean_squared_error
 
 # Local application imports
-from xai_compare.explainer import Explainer
+from xai_compare.abstract.explainer import Explainer
 from xai_compare.config import MODE
 
 
