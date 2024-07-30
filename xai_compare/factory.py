@@ -20,19 +20,31 @@ from xai_compare.config import MODE, EXPLAINERS
 
 class ExplainerFactory:
     """
-    A class for creating classes or instances of various explainer types based on the given model and data.
+    A class for creating instances of various explainer types based on the given model and data.
 
     This class simplifies the process of instantiating different types of explainers by providing a common interface
     to specify the necessary training and testing datasets along with the model.
 
     Attributes:
-        model (Any): The machine learning model to be explained.
-        X_train (pd.DataFrame): Training features dataset.
-        X_test (pd.DataFrame): Testing features dataset.
-        y_train (pd.DataFrame): Training target dataset.
-        y_test (pd.DataFrame): Testing target dataset.
-        mode (str): Mode of operation, specifies if the model is for 'regression' or 'classification'.
+        model (Any):
+            The machine learning model to be explained.
+
+        X_train (pd.DataFrame):
+            Training features dataset.
+
+        X_test (pd.DataFrame):
+            Testing features dataset.
+
+        y_train (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            Training target dataset.
+
+        y_test (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            Testing target dataset.
+
+        mode (str):
+            Mode of operation, specifies if the model is for 'regression' or 'classification'.
     """
+
     def __init__(self,
                  model: Any = None,
                  X_train: pd.DataFrame = None,
@@ -68,15 +80,19 @@ class ExplainerFactory:
         This method allows for dynamic creation of different types of explainer objects based on a predefined string
         identifier. If the model is not set, it returns the class of the explainer for manual instantiation.
 
-        Parameters:
-            explainer_type (str): A string identifier for the explainer type. Valid options are "shap", "lime", "permutations".
+        Attributes:
+            explainer_type (str):
+                A string identifier for the explainer type. Valid options are "shap", "lime", "permutations".
 
         Returns:
-            Explainer: An instance of the requested explainer type with the provided model and data.
+            Explainer:
+                An instance of the requested explainer type with the provided model and data.
 
         Raises:
-            ValueError: If the explainer_type is not recognized or unsupported.
+            ValueError:
+                If the explainer_type is not recognized or unsupported.
         """
+
         if explainer_type == "shap":
             return SHAP(self.model, self.X_train, self.y_train) if self.model else SHAP
         elif explainer_type == "lime":
@@ -158,20 +174,22 @@ class ComparisonFactory:
         """
         Creates and returns a comparison object based on the specified type.
 
-        This method allows for dynamic creation of different types of explainer objects based on a predefined string
-        identifier. If the model is not set, it returns the class of the explainer for manual instantiation.
+        This method allows for dynamic creation of different types of comparison objects based on a predefined string
+        identifier. If the model is not set, it returns the class of the comparison for manual instantiation.
 
-        Parameters:
-            comparison_type (str): A string identifier for the explainer type. 
-            Valid options are "feature_selection", "consistency".
+        Attributes:
+            comparison_type (str):
+                A string identifier for the comparison type. Valid options are "feature_selection", "consistency".
 
         Returns:
-            comparison.Comparison: An instance or class of the requested comparison type 
-            with the provided model and data.
+            comparison.Comparison:
+                An instance or class of the requested comparison type with the provided model and data.
 
         Raises:
-            ValueError: If the comparison_type is not recognized or unsupported.
+            ValueError:
+                If the comparison_type is not recognized or unsupported.
         """
+
 
         if comparison_type == "feature_selection":
             # Importing locally to avoid circular dependency

@@ -22,34 +22,40 @@ class Comparison(ABC):
     """
     Base class for model comparison that handles various explainer analyses.
 
-    This abstract class provides a framework for comparing explanation methods 
+    This abstract class provides a framework for comparing explanation methods
     to assess feature importance and explainer consistency.
 
-    Parameters:
-    ----------
-    model : model object
-        The input machine learning model.
-    data : pd.DataFrame
-        The feature dataset used for model training and explanation.
-    target : Union[pd.DataFrame, pd.Series, np.ndarray]
-        The target variables associated with the data.
-    mode : str, default MODE.REGRESSION
-        The mode of operation from config.py.
-    random_state : int, default 42
-        Seed used by the random number generator for reproducibility.
-    verbose : bool, default True
-        Enables verbose output during operations.
-    default_explainers : list, default EXPLAINERS
-        List of default explainers from config.py.
-    custom_explainer : Union[Type[Explainer], List[Type[Explainer]], None], optional
-        Custom explainer classes to be added to the default explainers.
+    Attributes:
+        model (Model):
+            The input machine learning model.
+
+        data (pd.DataFrame):
+            The feature dataset used for model training and explanation.
+
+        target (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            The target variables associated with the data.
+
+        mode (str, default 'REGRESSION'):
+            The mode of operation from config.py.
+
+        random_state (int, default 42):
+            Seed used by the random number generator for reproducibility.
+
+        verbose (bool, default True):
+            Enables verbose output during operations.
+
+        default_explainers (List[str], default EXPLAINERS):
+            List of default explainers from config.py.
+
+        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None], optional):
+            Custom explainer classes to be added to the default explainers.
 
     Methods:
-    -------
-    apply()
-        Abstract method to generate a comparison report based on the explainer outputs.
-    display()
-        Abstract method to plot and display the result from the comparison analysis.
+        apply():
+            Abstract method to generate a comparison report based on the explainer outputs.
+
+        display():
+            Abstract method to plot and display the result from the comparison analysis.
     """
 
     def __init__(self,
@@ -98,12 +104,15 @@ class Comparison(ABC):
         """
         Creates a list of explainer classes from default and custom explainers.
 
-        Parameters:
-            custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer or a list of custom explainer classes.
+        Attributes:
+            custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]):
+                Custom explainer or a list of custom explainer classes.
 
         Returns:
-            List[Explainer]: A list of initialized explainer classes.
+            List[Explainer]:
+                A list of initialized explainer classes.
         """
+
         list_explainers = [ExplainerFactory().create(explainer_name) for explainer_name in self.default_explainers]
 
         if custom_explainer:

@@ -28,22 +28,53 @@ class Consistency(Comparison):
     A class to evaluate the consistency of different explainers on a specified model.
 
     Attributes:
-        model (Model): The machine learning model to be evaluated.
-        data (pd.DataFrame): The feature dataset used for model training and explanation.
-        target (Union[pd.DataFrame, pd.Series, np.ndarray]): The target variables associated with the data.
-        mode (str): The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
-        random_state (int): Seed used by the random number generator.
-        verbose (bool): If True, prints additional information during the function's execution.
-        n_splits (int): The number of splits for cross-validation.
-        use_stratified_folds (bool): If True, uses stratified folds for cross-validation.
-        shuffle (bool): If True, shuffles the data before splitting into batches.
-        default_explainers (List[str]): List of default explainers to be used.
-        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]): Custom explainer(s) provided by the user.
-        consistency_scores_df (pd.DataFrame, optional): DataFrame containing the summary statistics of feature impact standard deviations.
-        scores (Any, optional): Placeholder for the scores obtained during evaluation.
-        summary (Any, optional): Placeholder for the summary of results.
-        results (Any, optional): Placeholder for the detailed results.
-        comparison_plot (Any, optional): Placeholder for the comparison plot.
+        model (Model):
+            The machine learning model to be evaluated.
+
+        data (pd.DataFrame):
+            The feature dataset used for model training and explanation.
+
+        target (Union[pd.DataFrame, pd.Series, np.ndarray]):
+            The target variables associated with the data.
+
+        mode (str):
+            The mode of operation, either 'REGRESSION' or 'CLASSIFICATION'.
+
+        random_state (int):
+            Seed used by the random number generator.
+
+        verbose (bool):
+            If True, prints additional information during the function's execution.
+
+        n_splits (int):
+            The number of splits for cross-validation.
+
+        use_stratified_folds (bool):
+            If True, uses stratified folds for cross-validation.
+
+        shuffle (bool):
+            If True, shuffles the data before splitting into batches.
+
+        default_explainers (List[str]):
+            List of default explainers to be used.
+
+        custom_explainer (Union[Type[Explainer], List[Type[Explainer]], None]):
+            Custom explainer(s) provided by the user.
+
+        consistency_scores_df (pd.DataFrame, optional):
+            DataFrame containing the summary statistics of feature impact standard deviations.
+
+        scores (Any, optional):
+            Placeholder for the scores obtained during evaluation.
+
+        summary (Any, optional):
+            Placeholder for the summary of results.
+
+        results (Any, optional):
+            Placeholder for the detailed results.
+
+        comparison_plot (Any, optional):
+            Placeholder for the comparison plot.
     """
 
     def __init__(self,
