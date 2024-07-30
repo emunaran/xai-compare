@@ -4,7 +4,7 @@ import sys
 import requests
 import configparser
 
-sys.path.insert(0, os.path.abspath('../..'))
+sys.path.insert(0, os.path.abspath('..'))
 # Get the path from sys.path
 directory_path = sys.path[0]
 
@@ -142,6 +142,6 @@ html_theme_options = {
 }
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = "../../docs/images/xai-compare_logo.png"
+html_logo = "../docs/images/xai-compare_logo.png"
 
 html_static_path = ['_static']
