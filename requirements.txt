@@ -13,3 +13,4 @@ interpret-community==0.31.0
 interpret-core==0.5.0
 sphinx==8.0.2
 livereload==2.7.0
+sphinx-rtd-theme==2.0.0
