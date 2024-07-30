@@ -24,7 +24,7 @@ Steps:
 from sklearn.ensemble import RandomForestClassifier
 
 # Local application imports
-from xai_compare.factory import ComparisonFactory
+from xai_compare.factories.factory import ComparisonFactory
 from xai_compare.datasets import german_credit
 from xai_compare.config import MODE, COMPARISON_TECHNIQUES
 
