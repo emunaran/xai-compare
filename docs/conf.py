@@ -5,18 +5,11 @@ import requests
 import configparser
 
 sys.path.insert(0, os.path.abspath('..'))
-# Get the path from sys.path
-directory_path = sys.path[0]
-
-# Change the working directory
-os.chdir(directory_path)
 import subprocess
 # Run the 'ls' command in the new directory
-result = subprocess.run(['ls'], capture_output=True, text=True)
+subprocess.run(['mkdir', '_static'], capture_output=True, text=True)
+subprocess.run(['mkdir', '_templates'], capture_output=True, text=True)
 
-# Print the output
-print("Output:")
-print(result.stdout)
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
