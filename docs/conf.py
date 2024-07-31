@@ -5,7 +5,7 @@ import requests
 import configparser
 import subprocess
 
-
+print(os.path.abspath("./xai_compare"))
 sys.path.insert(0, os.path.abspath('..'))
 # Run the 'ls' command in the new directory
 os.makedirs('_build', exist_ok=True)
@@ -196,3 +196,9 @@ html_theme_options = {
 html_logo = "../docs/images/xai-compare_logo.png"
 
 html_static_path = ['_static']
+
+
+def setup(app):
+    import xai_compare  # noqa: F401
+
+    # app.connect("build-finished", build_finished)
