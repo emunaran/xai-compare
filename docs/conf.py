@@ -6,7 +6,7 @@ import configparser
 import subprocess
 
 print(os.path.abspath("./xai_compare"))
-sys.path.insert(0, os.path.abspath('../../'))
+sys.path.insert(0, os.path.abspath('../../../'))
 # Run the 'ls' command in the new directory
 os.makedirs('_build', exist_ok=True)
 os.makedirs('_build/doctrees', exist_ok=True)
