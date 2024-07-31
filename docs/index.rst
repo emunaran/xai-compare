@@ -6,9 +6,23 @@
 xai-compare documentation
 =========================
 
-Add your content using ``reStructuredText`` syntax. See the
-`reStructuredText <https://www.sphinx-doc.org/en/master/usage/restructuredtext/index.html>`_
-documentation for details.
+.. image:: images/xai-compare_logo.png
+   :width: 300px
+   :align: center
+
+.. raw:: html
+
+   <br>
+
+**XAI-Compare** is a platform for evaluating explanability methods of machine learning models.
+The link of the github repository can be found `here <https://github.com/emunaran/xai-compare>`_.
+
+Install
+=======
+
+XAI-Compare can be installed from `PyPI <https://pypi.org/project/xai-compare>`_ ::
+
+   pip install xai-compare
 
 
 .. toctree::
