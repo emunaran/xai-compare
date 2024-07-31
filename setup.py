@@ -24,12 +24,22 @@ setup(
         'matplotlib==3.9.1',
         'notebook==7.2.1',
         'numpy==1.26.4',
-        'pandas==2.2.2',
+        'pandas==1.5.3',
         'scikit-learn==1.5.1',
         'scipy==1.14.0',
         'seaborn==0.13.2',
         'shap==0.44.0',
-        'tqdm==4.66.4',
+        'interpret==0.5.0',
+        'interpret-community==0.31.0',
+        'interpret-core==0.5.0',
+
+        'sphinx==7.4.7',
+        'livereload==2.7.0',
+        'sphinx-rtd-theme==2.0.0',
+        'numpydoc==1.7.0',
+        'nbsphinx==0.9.4',
+        'myst-parser==3.0.1',
+        'sphinx-github-changelog==1.3.0'
     ],
     package_data={
         'xai_compare': [
