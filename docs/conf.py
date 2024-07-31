@@ -2,17 +2,12 @@ import os
 import sys
 
 import requests
-import configparser
-import subprocess
 
-print(os.path.abspath("./xai_compare"))
+
 sys.path.insert(0, os.path.abspath('..'))
-# Run the 'ls' command in the new directory
-os.makedirs('_build', exist_ok=True)
-os.makedirs('_build/doctrees', exist_ok=True)
-os.makedirs('_static', exist_ok=True)
-os.makedirs('_templates', exist_ok=True)
+print(sys.path)
 
+import xai_compare
 # ------------------------------------------------ #
 
 import os
