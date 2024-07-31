@@ -7,62 +7,6 @@ import requests
 sys.path.insert(0, os.path.abspath('..'))
 print(sys.path)
 
-import xai_compare
-# ------------------------------------------------ #
-
-import os
-import fnmatch
-
-def load_gitignore_patterns(gitignore_path):
-    """Load patterns from .gitignore file."""
-    try:
-        with open(gitignore_path, 'r') as file:
-            patterns = [line.strip() for line in file if line.strip() and not line.startswith('#')]
-        return patterns
-    except FileNotFoundError:
-        return []
-
-def should_exclude(path, patterns):
-    """Determine if a path should be excluded based on patterns."""
-    for pattern in patterns:
-        if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(os.path.basename(path), pattern):
-            return True
-    return False
-
-def print_directory_tree(root_dir, indent_level=0, exclude_patterns=None):
-    if exclude_patterns is None:
-        exclude_patterns = []
-
-    # Get the list of all files and directories in the root directory
-    try:
-        with os.scandir(root_dir) as entries:
-            for entry in entries:
-                # Skip 'venv' directory and entries matching exclude patterns
-                if entry.name in ['venv', '_build', '.git'] or should_exclude(entry.path, exclude_patterns):
-                    continue
-
-                # Print the name of the directory or file with appropriate indentation
-                print(' ' * indent_level * 4 + '|-- ' + entry.name)
-
-                # If the entry is a directory, recurse into it
-                if entry.is_dir(follow_symlinks=False):
-                    print_directory_tree(entry.path, indent_level + 1, exclude_patterns)
-    except PermissionError as e:
-        # Handle directories for which we don't have permission to access
-        print(' ' * indent_level * 4 + '|-- [Permission Denied]')
-
-# Define the root directory and the .gitignore file path
-root_directory = os.path.abspath('..')
-gitignore_path = os.path.join(root_directory, '.gitignore')
-
-# Load patterns from .gitignore
-gitignore_patterns = load_gitignore_patterns(gitignore_path)
-
-# Print the directory tree, excluding 'venv' and entries from .gitignore
-print_directory_tree(root_directory, exclude_patterns=gitignore_patterns)
-
-# ------------------------------------------------ #
-
 # Configuration file for the Sphinx documentation builder.
 #
 # For the full list of built-in configuration values, see the documentation:
@@ -156,7 +100,7 @@ def get_latest_tag() -> str:
 
 
 _latest_tag = get_latest_tag()
-_url = f"https://github.com/xai-compare/compare/{_latest_tag}...main"
+_url = f"https://github.com/emunaran/xai-compare/compare/{_latest_tag}...main"
 
 # Make an RST substitution that inserts the correct hyperlink
 rst_epilog = f"""
