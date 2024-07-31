@@ -8,8 +8,10 @@ import subprocess
 
 sys.path.insert(0, os.path.abspath('..'))
 # Run the 'ls' command in the new directory
-subprocess.run(['mkdir', '_static'], capture_output=True, text=True)
-subprocess.run(['mkdir', '_templates'], capture_output=True, text=True)
+os.makedirs('_build', exist_ok=True)
+os.makedirs('_build/doctrees', exist_ok=True)
+os.makedirs('_static', exist_ok=True)
+os.makedirs('_templates', exist_ok=True)
 
 # ------------------------------------------------ #
 
