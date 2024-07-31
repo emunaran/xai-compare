@@ -3,11 +3,10 @@
 </div>
 
 ---
-[![PyPI](https://img.shields.io/badge/pypi-v0.1.0-orange
-)](https://pypi.org/project/)
-![License](https://img.shields.io/badge/license-MIT-green
-)
+[![PyPI](https://img.shields.io/pypi/v/xai-compare)](https://pypi.org/pypi/xai-compare)
+![License](https://img.shields.io/badge/license-MIT-green)
 [![Python](https://img.shields.io/badge/python-%3E3.9-blue)](https://pypi.org/project/)
+[![Documentation Status](https://readthedocs.org/projects/xai-compare/badge/?version=latest)](https://xai-compare.readthedocs.io/en/latest/?badge=latest)
 
 
 ## Description
@@ -15,10 +14,13 @@
 
 `xai-compare` includes a variety of XAI techniques like SHAP, LIME, and Permutation Feature Importance, and introduces advanced comparison techniques such as consistency measurement and feature selection analysis. It is designed to be flexible, easy to integrate, and ideal for enhancing model transparency and interpretability across various applications.
 
+## XAI-Compare Documentation
+You can find our ReadTheDocs (RTD) [documentation here](https://xai-compare.readthedocs.io/en/latest/).
+
 
 ## Installation
 
-The package can be installed from [PyPI](https://pypi.org/project/):
+The package can be installed from [PyPI](https://pypi.org/pypi/xai-compare):
 
 Using pip:
 ```bash
