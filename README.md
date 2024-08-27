@@ -89,6 +89,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 ## Acknowledgments
-- The California housing dataset is sourced from scikit-learn.
 - SHAP and LIME libraries are used for model interpretability.
 
